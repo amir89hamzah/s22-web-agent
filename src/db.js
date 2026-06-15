@@ -32,6 +32,23 @@ function parsePositiveId(id) {
   return pageId;
 }
 
+function columnExists(columnName) {
+  const output = runSql(`
+.mode list
+SELECT COUNT(*)
+FROM pragma_table_info('pages')
+WHERE name = ${sqlString(columnName)};
+`);
+
+  return Number.parseInt(output.trim() || "0", 10) > 0;
+}
+
+function ensureColumn(columnName, columnDefinition) {
+  if (!columnExists(columnName)) {
+    runSql(`ALTER TABLE pages ADD COLUMN ${columnName} ${columnDefinition};`);
+  }
+}
+
 function initDb() {
   runSql(`
 CREATE TABLE IF NOT EXISTS pages (
@@ -44,10 +61,18 @@ CREATE TABLE IF NOT EXISTS pages (
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 `);
+
+  ensureColumn("category", "TEXT DEFAULT 'unknown'");
+  ensureColumn("relevance_score", "INTEGER DEFAULT 0");
+  ensureColumn("notes", "TEXT");
 }
 
 function savePageScan(result) {
   initDb();
+
+  const relevanceScore = Number.isFinite(result.relevance_score)
+    ? result.relevance_score
+    : 0;
 
   const sql = `
 INSERT INTO pages (
@@ -56,6 +81,9 @@ INSERT INTO pages (
   description,
   headings_json,
   links_json,
+  category,
+  relevance_score,
+  notes,
   created_at
 )
 VALUES (
@@ -64,6 +92,9 @@ VALUES (
   ${sqlString(result.description)},
   ${sqlString(JSON.stringify(result.headings || []))},
   ${sqlString(JSON.stringify(result.links || []))},
+  ${sqlString(result.category || "unknown")},
+  ${relevanceScore},
+  ${sqlString(result.notes || "")},
   ${sqlString(result.scanned_at)}
 );
 `;
@@ -80,6 +111,8 @@ function listPages() {
 SELECT
   id,
   title,
+  category,
+  relevance_score,
   url,
   created_at
 FROM pages
@@ -102,6 +135,9 @@ SELECT
   description,
   headings_json,
   links_json,
+  category,
+  relevance_score,
+  notes,
   created_at
 FROM pages
 WHERE id = ${pageId}
