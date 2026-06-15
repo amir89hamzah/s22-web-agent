@@ -1,7 +1,14 @@
 const fs = require("fs");
 const path = require("path");
 const cheerio = require("cheerio");
-const { savePageScan, listPages, getPageById, dbPath } = require("./db");
+const {
+  savePageScan,
+  listPages,
+  getPageById,
+  deletePageById,
+  dbPath,
+} = require("./db");
+
 require("dotenv").config({ quiet: true });
 
 function printHelp() {
@@ -11,6 +18,7 @@ function printHelp() {
   console.log("  node src/index.js scan https://example.com");
   console.log("  node src/index.js list");
   console.log("  node src/index.js show 5");
+  console.log("  node src/index.js delete 5");
   console.log("");
   console.log("Backward compatible:");
   console.log("  node src/index.js https://example.com");
@@ -64,6 +72,16 @@ function showPage(id) {
     links.forEach((link, index) => {
       console.log(`${index + 1}. ${link.text} -> ${link.href}`);
     });
+  }
+}
+
+function deletePage(id) {
+  const deleted = deletePageById(id);
+
+  if (deleted) {
+    console.log(`Deleted scan id: ${id}`);
+  } else {
+    console.log(`No scan found for id: ${id}`);
   }
 }
 
@@ -185,6 +203,20 @@ async function main() {
     }
 
     showPage(id);
+    return;
+  }
+
+  if (command === "delete") {
+    const id = process.argv[3];
+
+    if (!id) {
+      console.log("Missing id.");
+      console.log("");
+      printHelp();
+      process.exit(1);
+    }
+
+    deletePage(id);
     return;
   }
 

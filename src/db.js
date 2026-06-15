@@ -22,6 +22,16 @@ function sqlString(value) {
   return "'" + String(value).replace(/'/g, "''") + "'";
 }
 
+function parsePositiveId(id) {
+  const pageId = Number.parseInt(id, 10);
+
+  if (!Number.isInteger(pageId) || pageId <= 0) {
+    throw new Error("Invalid page id. Use a number like: 5");
+  }
+
+  return pageId;
+}
+
 function initDb() {
   runSql(`
 CREATE TABLE IF NOT EXISTS pages (
@@ -81,11 +91,7 @@ LIMIT 10;
 function getPageById(id) {
   initDb();
 
-  const pageId = Number.parseInt(id, 10);
-
-  if (!Number.isInteger(pageId) || pageId <= 0) {
-    throw new Error("Invalid page id. Use a number like: show 5");
-  }
+  const pageId = parsePositiveId(id);
 
   const output = runSql(`
 .mode json
@@ -111,10 +117,28 @@ LIMIT 1;
   return rows[0];
 }
 
+function deletePageById(id) {
+  initDb();
+
+  const pageId = parsePositiveId(id);
+
+  const output = runSql(`
+.mode list
+DELETE FROM pages WHERE id = ${pageId};
+SELECT changes();
+`);
+
+  const lines = output.trim().split(/\r?\n/).filter(Boolean);
+  const deletedCount = Number.parseInt(lines[lines.length - 1] || "0", 10);
+
+  return deletedCount > 0;
+}
+
 module.exports = {
   dbPath,
   initDb,
   savePageScan,
   listPages,
   getPageById,
+  deletePageById,
 };
