@@ -1,18 +1,21 @@
 const fs = require("fs");
 const path = require("path");
 const cheerio = require("cheerio");
-const { savePageScan, dbPath } = require("./db");
+const { savePageScan, listPages, dbPath } = require("./db");
 require("dotenv").config({ quiet: true });
 
-async function main() {
-  const url = process.argv[2];
+function printHelp() {
+  console.log("S22 Mobile Job Radar Agent");
+  console.log("");
+  console.log("Usage:");
+  console.log("  node src/index.js scan https://example.com");
+  console.log("  node src/index.js list");
+  console.log("");
+  console.log("Backward compatible:");
+  console.log("  node src/index.js https://example.com");
+}
 
-  if (!url) {
-    console.log("Usage:");
-    console.log("node src/index.js https://example.com");
-    process.exit(1);
-  }
-
+async function scanUrl(url) {
   console.log("Scanning URL:");
   console.log(url);
   console.log("");
@@ -40,6 +43,7 @@ async function main() {
   const headings = [];
   $("h1, h2").each((index, element) => {
     const text = $(element).text().replace(/\s+/g, " ").trim();
+
     if (text && headings.length < 10) {
       headings.push(text);
     }
@@ -70,15 +74,23 @@ async function main() {
   console.log("");
 
   console.log("=== HEADINGS ===");
-  headings.forEach((heading, index) => {
-    console.log(`${index + 1}. ${heading}`);
-  });
+  if (headings.length === 0) {
+    console.log("(no h1/h2 headings found)");
+  } else {
+    headings.forEach((heading, index) => {
+      console.log(`${index + 1}. ${heading}`);
+    });
+  }
 
   console.log("");
   console.log("=== LINKS ===");
-  links.forEach((link, index) => {
-    console.log(`${index + 1}. ${link.text} -> ${link.href}`);
-  });
+  if (links.length === 0) {
+    console.log("(no links found)");
+  } else {
+    links.forEach((link, index) => {
+      console.log(`${index + 1}. ${link.text} -> ${link.href}`);
+    });
+  }
 
   const reportsDir = path.join(__dirname, "..", "reports");
   fs.mkdirSync(reportsDir, { recursive: true });
@@ -97,8 +109,46 @@ async function main() {
   console.log(dbPath);
 }
 
+async function main() {
+  const command = process.argv[2];
+
+  if (!command || command === "help" || command === "--help" || command === "-h") {
+    printHelp();
+    return;
+  }
+
+  if (command === "list") {
+    console.log(listPages());
+    return;
+  }
+
+  if (command === "scan") {
+    const url = process.argv[3];
+
+    if (!url) {
+      console.log("Missing URL.");
+      console.log("");
+      printHelp();
+      process.exit(1);
+    }
+
+    await scanUrl(url);
+    return;
+  }
+
+  if (command.startsWith("http://") || command.startsWith("https://")) {
+    await scanUrl(command);
+    return;
+  }
+
+  console.log(`Unknown command: ${command}`);
+  console.log("");
+  printHelp();
+  process.exit(1);
+}
+
 main().catch((error) => {
-  console.error("Scan failed:");
+  console.error("Command failed:");
   console.error(error.message);
   process.exit(1);
 });

@@ -61,8 +61,26 @@ VALUES (
   runSql(sql);
 }
 
+function listPages() {
+  initDb();
+
+  return runSql(`
+.headers on
+.mode box
+SELECT
+  id,
+  title,
+  url,
+  created_at
+FROM pages
+ORDER BY id DESC
+LIMIT 10;
+`);
+}
+
 module.exports = {
   dbPath,
   initDb,
   savePageScan,
+  listPages,
 };
