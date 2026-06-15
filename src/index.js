@@ -9,6 +9,7 @@ const {
   dbPath,
 } = require("./db");
 const { generateMarkdownReport } = require("./report");
+const { classifyPage } = require("./classifier");
 
 require("dotenv").config({ quiet: true });
 
@@ -54,6 +55,9 @@ function showPage(id) {
   console.log("Title:", page.title || "(no title)");
   console.log("URL:", page.url);
   console.log("Created At:", page.created_at);
+  console.log("Category:", page.category || "unknown");
+  console.log("Relevance Score:", page.relevance_score || 0);
+  console.log("Notes:", page.notes || "(no notes)");
   console.log("Description:", page.description || "(no description)");
   console.log("");
 
@@ -154,9 +158,17 @@ async function scanUrl(url) {
     links,
   };
 
+  const classification = classifyPage(result);
+  result.category = classification.category;
+  result.relevance_score = classification.relevance_score;
+  result.notes = classification.notes;
+
   console.log("=== PAGE SUMMARY ===");
   console.log("Title:", title || "(no title)");
   console.log("Description:", description || "(no description)");
+  console.log("Category:", result.category);
+  console.log("Relevance Score:", result.relevance_score);
+  console.log("Notes:", result.notes);
   console.log("");
 
   console.log("=== HEADINGS ===");

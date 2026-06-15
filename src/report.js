@@ -38,10 +38,16 @@ function generateMarkdownReport(page) {
   lines.push(`**ID:** ${page.id}`);
   lines.push(`**URL:** ${page.url}`);
   lines.push(`**Created At:** ${page.created_at}`);
+  lines.push(`**Category:** ${page.category || "unknown"}`);
+  lines.push(`**Relevance Score:** ${page.relevance_score || 0}`);
   lines.push("");
   lines.push("## Description");
   lines.push("");
   lines.push(page.description || "_No description found._");
+  lines.push("");
+  lines.push("## Classification Notes");
+  lines.push("");
+  lines.push(page.notes || "_No notes available._");
   lines.push("");
   lines.push("## Headings");
   lines.push("");
