@@ -17,16 +17,16 @@
 
 - [x] `node src/index.js scan <url>`
 - [x] `node src/index.js list`
-- [ ] Add `show <id>` command to view full scan detail
-- [ ] Add `delete <id>` command to remove wrong/duplicate scan
+- [x] Add `show <id>` command to view full scan detail
+- [x] Add `delete <id>` command to remove wrong/duplicate scan
 - [ ] Add better error message for 403/blocked websites
 - [ ] Add README.md basic documentation
 
 ## Phase 2 - Report Generator
 
-- [ ] Generate markdown report from scan result
-- [ ] Save report into `reports/`
-- [ ] Add `report <id>` command
+- [x] Generate markdown report from scan result
+- [x] Save report into `reports/`
+- [x] Add `report <id>` command
 - [ ] Add simple relevance score
 - [ ] Add category field: job, company, AI tool, industrial, unknown
 
