@@ -78,9 +78,43 @@ LIMIT 10;
 `);
 }
 
+function getPageById(id) {
+  initDb();
+
+  const pageId = Number.parseInt(id, 10);
+
+  if (!Number.isInteger(pageId) || pageId <= 0) {
+    throw new Error("Invalid page id. Use a number like: show 5");
+  }
+
+  const output = runSql(`
+.mode json
+SELECT
+  id,
+  url,
+  title,
+  description,
+  headings_json,
+  links_json,
+  created_at
+FROM pages
+WHERE id = ${pageId}
+LIMIT 1;
+`);
+
+  const rows = JSON.parse(output || "[]");
+
+  if (rows.length === 0) {
+    return null;
+  }
+
+  return rows[0];
+}
+
 module.exports = {
   dbPath,
   initDb,
   savePageScan,
   listPages,
+  getPageById,
 };

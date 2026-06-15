@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const cheerio = require("cheerio");
-const { savePageScan, listPages, dbPath } = require("./db");
+const { savePageScan, listPages, getPageById, dbPath } = require("./db");
 require("dotenv").config({ quiet: true });
 
 function printHelp() {
@@ -10,9 +10,61 @@ function printHelp() {
   console.log("Usage:");
   console.log("  node src/index.js scan https://example.com");
   console.log("  node src/index.js list");
+  console.log("  node src/index.js show 5");
   console.log("");
   console.log("Backward compatible:");
   console.log("  node src/index.js https://example.com");
+}
+
+function parseJsonArray(value) {
+  if (!value) {
+    return [];
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return [];
+  }
+}
+
+function showPage(id) {
+  const page = getPageById(id);
+
+  if (!page) {
+    console.log(`No scan found for id: ${id}`);
+    return;
+  }
+
+  const headings = parseJsonArray(page.headings_json);
+  const links = parseJsonArray(page.links_json);
+
+  console.log("=== SCAN DETAIL ===");
+  console.log("ID:", page.id);
+  console.log("Title:", page.title || "(no title)");
+  console.log("URL:", page.url);
+  console.log("Created At:", page.created_at);
+  console.log("Description:", page.description || "(no description)");
+  console.log("");
+
+  console.log("=== HEADINGS ===");
+  if (headings.length === 0) {
+    console.log("(no headings found)");
+  } else {
+    headings.forEach((heading, index) => {
+      console.log(`${index + 1}. ${heading}`);
+    });
+  }
+
+  console.log("");
+  console.log("=== LINKS ===");
+  if (links.length === 0) {
+    console.log("(no links found)");
+  } else {
+    links.forEach((link, index) => {
+      console.log(`${index + 1}. ${link.text} -> ${link.href}`);
+    });
+  }
 }
 
 async function scanUrl(url) {
@@ -119,6 +171,20 @@ async function main() {
 
   if (command === "list") {
     console.log(listPages());
+    return;
+  }
+
+  if (command === "show") {
+    const id = process.argv[3];
+
+    if (!id) {
+      console.log("Missing id.");
+      console.log("");
+      printHelp();
+      process.exit(1);
+    }
+
+    showPage(id);
     return;
   }
 
