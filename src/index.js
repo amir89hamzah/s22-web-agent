@@ -8,6 +8,7 @@ const {
   deletePageById,
   dbPath,
 } = require("./db");
+const { generateMarkdownReport } = require("./report");
 
 require("dotenv").config({ quiet: true });
 
@@ -19,6 +20,7 @@ function printHelp() {
   console.log("  node src/index.js list");
   console.log("  node src/index.js show 5");
   console.log("  node src/index.js delete 5");
+  console.log("  node src/index.js report 5");
   console.log("");
   console.log("Backward compatible:");
   console.log("  node src/index.js https://example.com");
@@ -83,6 +85,20 @@ function deletePage(id) {
   } else {
     console.log(`No scan found for id: ${id}`);
   }
+}
+
+function reportPage(id) {
+  const page = getPageById(id);
+
+  if (!page) {
+    console.log(`No scan found for id: ${id}`);
+    return;
+  }
+
+  const outputPath = generateMarkdownReport(page);
+
+  console.log("Generated markdown report:");
+  console.log(outputPath);
 }
 
 async function scanUrl(url) {
@@ -217,6 +233,20 @@ async function main() {
     }
 
     deletePage(id);
+    return;
+  }
+
+  if (command === "report") {
+    const id = process.argv[3];
+
+    if (!id) {
+      console.log("Missing id.");
+      console.log("");
+      printHelp();
+      process.exit(1);
+    }
+
+    reportPage(id);
     return;
   }
 
