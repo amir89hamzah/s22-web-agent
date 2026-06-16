@@ -5,3 +5,4 @@ reports/last-scan.json
 backups/
 npm-debug.log*
 reports/*.md
+server.log
