@@ -48,7 +48,7 @@
 - [x] Add `POST /scan`
 - [x] Add `GET /report/:id`
 - [x] Test API from S22 using localhost
-- [ ] Test API from PC using S22 IP
+- [x] Test API from PC using S22 IP
 
 ## Phase 4 - Reusable Tool Functions
 
