@@ -1,5 +1,6 @@
 const express = require("express");
 const { dbPath, getPages, getPageForApi } = require("./db");
+const { scanUrl } = require("./scanner");
 
 require("dotenv").config({ quiet: true });
 
@@ -16,6 +17,31 @@ app.get("/health", (req, res) => {
     dbPath,
     timestamp: new Date().toISOString(),
   });
+});
+
+app.post("/scan", async (req, res) => {
+  try {
+    const { url } = req.body || {};
+    const scan = await scanUrl(url);
+
+    res.status(201).json({
+      ok: true,
+      result: scan.result,
+      outputPath: scan.outputPath,
+      dbPath: scan.dbPath,
+    });
+  } catch (error) {
+    const statusCode =
+      error.message.includes("Missing url") ||
+      error.message.includes("Invalid url")
+        ? 400
+        : 500;
+
+    res.status(statusCode).json({
+      ok: false,
+      error: error.message,
+    });
+  }
 });
 
 app.get("/pages", (req, res) => {

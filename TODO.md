@@ -45,7 +45,7 @@
 - [x] Add `GET /health`
 - [x] Add `GET /pages`
 - [x] Add `GET /pages/:id`
-- [ ] Add `POST /scan`
+- [x] Add `POST /scan`
 - [ ] Add `GET /report/:id`
 - [x] Test API from S22 using localhost
 - [ ] Test API from PC using S22 IP
@@ -53,7 +53,7 @@
 ## Phase 4 - Reusable Tool Functions
 
 - [ ] Move scan logic from `src/index.js` into reusable module
-- [ ] Create reusable function: `scanUrl`
+- [x] Create reusable function: `scanUrl`
 - [ ] Create reusable function: `listPages`
 - [ ] Create reusable function: `showPage`
 - [ ] Create reusable function: `deletePage`
