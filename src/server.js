@@ -1,5 +1,6 @@
 const express = require("express");
-const { dbPath, getPages, getPageForApi } = require("./db");
+const { dbPath, getPages, getPageById, getPageForApi } = require("./db");
+const { generateMarkdownReport } = require("./report");
 const { scanUrl } = require("./scanner");
 
 require("dotenv").config({ quiet: true });
@@ -77,6 +78,38 @@ app.get("/pages/:id", (req, res) => {
     res.json({
       ok: true,
       page,
+    });
+  } catch (error) {
+    const statusCode = error.message.includes("Invalid page id") ? 400 : 500;
+
+    res.status(statusCode).json({
+      ok: false,
+      error: error.message,
+    });
+  }
+});
+
+app.get("/report/:id", (req, res) => {
+  try {
+    const page = getPageById(req.params.id);
+
+    if (!page) {
+      res.status(404).json({
+        ok: false,
+        error: "Page not found",
+        id: req.params.id,
+      });
+      return;
+    }
+
+    const outputPath = generateMarkdownReport(page);
+
+    res.json({
+      ok: true,
+      id: page.id,
+      title: page.title || "",
+      url: page.url,
+      outputPath,
     });
   } catch (error) {
     const statusCode = error.message.includes("Invalid page id") ? 400 : 500;

@@ -46,7 +46,7 @@
 - [x] Add `GET /pages`
 - [x] Add `GET /pages/:id`
 - [x] Add `POST /scan`
-- [ ] Add `GET /report/:id`
+- [x] Add `GET /report/:id`
 - [x] Test API from S22 using localhost
 - [ ] Test API from PC using S22 IP
 
@@ -57,7 +57,7 @@
 - [ ] Create reusable function: `listPages`
 - [ ] Create reusable function: `showPage`
 - [ ] Create reusable function: `deletePage`
-- [ ] Create reusable function: `generateReport`
+- [x] Create reusable function: `generateReport`
 - [ ] Make CLI and API use the same functions
 
 ## Phase 5 - MCP Layer
