@@ -40,14 +40,14 @@
 
 ## Phase 3 - HTTP API Server
 
-- [ ] Install Express
-- [ ] Create `src/server.js`
-- [ ] Add `GET /health`
+- [x] Install Express
+- [x] Create `src/server.js`
+- [x] Add `GET /health`
 - [ ] Add `GET /pages`
 - [ ] Add `GET /pages/:id`
 - [ ] Add `POST /scan`
 - [ ] Add `GET /report/:id`
-- [ ] Test API from S22 using localhost
+- [x] Test API from S22 using localhost
 - [ ] Test API from PC using S22 IP
 
 ## Phase 4 - Reusable Tool Functions
