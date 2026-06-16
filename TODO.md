@@ -52,13 +52,13 @@
 
 ## Phase 4 - Reusable Tool Functions
 
-- [ ] Move scan logic from `src/index.js` into reusable module
+- [x] Move scan logic from `src/index.js` into reusable module
 - [x] Create reusable function: `scanUrl`
 - [ ] Create reusable function: `listPages`
 - [ ] Create reusable function: `showPage`
 - [ ] Create reusable function: `deletePage`
 - [x] Create reusable function: `generateReport`
-- [ ] Make CLI and API use the same functions
+- [x] Make CLI and API use the same functions
 
 ## Phase 5 - MCP Layer
 

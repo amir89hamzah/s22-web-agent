@@ -1,15 +1,10 @@
-const fs = require("fs");
-const path = require("path");
-const cheerio = require("cheerio");
 const {
-  savePageScan,
   listPages,
   getPageById,
   deletePageById,
-  dbPath,
 } = require("./db");
 const { generateMarkdownReport } = require("./report");
-const { classifyPage } = require("./classifier");
+const { scanUrl } = require("./scanner");
 
 require("dotenv").config({ quiet: true });
 
@@ -105,106 +100,53 @@ function reportPage(id) {
   console.log(outputPath);
 }
 
-async function scanUrl(url) {
-  console.log("Scanning URL:");
-  console.log(url);
-  console.log("");
-
-  const response = await fetch(url, {
-    headers: {
-      "User-Agent": "S22-Mobile-Job-Radar-Agent/1.0",
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
-  }
-
-  const html = await response.text();
-  const $ = cheerio.load(html);
-
-  const title = $("title").first().text().trim();
-
-  const description =
-    $('meta[name="description"]').attr("content") ||
-    $('meta[property="og:description"]').attr("content") ||
-    "";
-
-  const headings = [];
-  $("h1, h2").each((index, element) => {
-    const text = $(element).text().replace(/\s+/g, " ").trim();
-
-    if (text && headings.length < 10) {
-      headings.push(text);
-    }
-  });
-
-  const links = [];
-  $("a").each((index, element) => {
-    const text = $(element).text().replace(/\s+/g, " ").trim();
-    const href = $(element).attr("href");
-
-    if (text && href && links.length < 15) {
-      links.push({ text, href });
-    }
-  });
-
-  const result = {
-    scanned_at: new Date().toISOString(),
-    url,
-    title,
-    description,
-    headings,
-    links,
-  };
-
-  const classification = classifyPage(result);
-  result.category = classification.category;
-  result.relevance_score = classification.relevance_score;
-  result.notes = classification.notes;
+function printScanResult(scan) {
+  const result = scan.result;
 
   console.log("=== PAGE SUMMARY ===");
-  console.log("Title:", title || "(no title)");
-  console.log("Description:", description || "(no description)");
+  console.log("Title:", result.title || "(no title)");
+  console.log("URL:", result.url);
+  console.log("Description:", result.description || "(no description)");
   console.log("Category:", result.category);
   console.log("Relevance Score:", result.relevance_score);
   console.log("Notes:", result.notes);
   console.log("");
 
   console.log("=== HEADINGS ===");
-  if (headings.length === 0) {
+  if (result.headings.length === 0) {
     console.log("(no h1/h2 headings found)");
   } else {
-    headings.forEach((heading, index) => {
+    result.headings.forEach((heading, index) => {
       console.log(`${index + 1}. ${heading}`);
     });
   }
 
   console.log("");
   console.log("=== LINKS ===");
-  if (links.length === 0) {
+  if (result.links.length === 0) {
     console.log("(no links found)");
   } else {
-    links.forEach((link, index) => {
+    result.links.forEach((link, index) => {
       console.log(`${index + 1}. ${link.text} -> ${link.href}`);
     });
   }
 
-  const reportsDir = path.join(__dirname, "..", "reports");
-  fs.mkdirSync(reportsDir, { recursive: true });
-
-  const outputPath = path.join(reportsDir, "last-scan.json");
-  fs.writeFileSync(outputPath, JSON.stringify(result, null, 2));
-
-  savePageScan(result);
-
   console.log("");
   console.log("Saved report to:");
-  console.log(outputPath);
+  console.log(scan.outputPath);
 
   console.log("");
   console.log("Saved SQLite DB to:");
-  console.log(dbPath);
+  console.log(scan.dbPath);
+}
+
+async function scanAndPrint(url) {
+  console.log("Scanning URL:");
+  console.log(url);
+  console.log("");
+
+  const scan = await scanUrl(url);
+  printScanResult(scan);
 }
 
 async function main() {
@@ -272,12 +214,12 @@ async function main() {
       process.exit(1);
     }
 
-    await scanUrl(url);
+    await scanAndPrint(url);
     return;
   }
 
   if (command.startsWith("http://") || command.startsWith("https://")) {
-    await scanUrl(command);
+    await scanAndPrint(command);
     return;
   }
 
