@@ -43,8 +43,8 @@
 - [x] Install Express
 - [x] Create `src/server.js`
 - [x] Add `GET /health`
-- [ ] Add `GET /pages`
-- [ ] Add `GET /pages/:id`
+- [x] Add `GET /pages`
+- [x] Add `GET /pages/:id`
 - [ ] Add `POST /scan`
 - [ ] Add `GET /report/:id`
 - [x] Test API from S22 using localhost

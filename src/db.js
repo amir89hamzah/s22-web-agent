@@ -121,6 +121,74 @@ LIMIT 10;
 `);
 }
 
+function parseJsonArray(value) {
+  if (!value) {
+    return [];
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return [];
+  }
+}
+
+function normalizePageRow(row) {
+  return {
+    id: row.id,
+    url: row.url,
+    title: row.title,
+    description: row.description,
+    headings: parseJsonArray(row.headings_json),
+    links: parseJsonArray(row.links_json),
+    category: row.category || "unknown",
+    relevance_score: row.relevance_score || 0,
+    notes: row.notes || "",
+    created_at: row.created_at,
+  };
+}
+
+function getPages(limit = 10) {
+  initDb();
+
+  const parsedLimit = Number.parseInt(limit, 10);
+  const safeLimit = Number.isInteger(parsedLimit) && parsedLimit > 0 && parsedLimit <= 50
+    ? parsedLimit
+    : 10;
+
+  const output = runSql(`
+.mode json
+SELECT
+  id,
+  url,
+  title,
+  description,
+  headings_json,
+  links_json,
+  category,
+  relevance_score,
+  notes,
+  created_at
+FROM pages
+ORDER BY id DESC
+LIMIT ${safeLimit};
+`);
+
+  const rows = JSON.parse(output.trim() || "[]");
+
+  return rows.map(normalizePageRow);
+}
+
+function getPageForApi(id) {
+  const page = getPageById(id);
+
+  if (!page) {
+    return null;
+  }
+
+  return normalizePageRow(page);
+}
+
 function getPageById(id) {
   initDb();
 
@@ -175,6 +243,8 @@ module.exports = {
   initDb,
   savePageScan,
   listPages,
+  getPages,
   getPageById,
+  getPageForApi,
   deletePageById,
 };
