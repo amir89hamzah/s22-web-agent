@@ -89,3 +89,51 @@ This project is planned to evolve into a mobile-hosted AI automation agent with:
 ## Portfolio Summary
 
 Built a Samsung S22-hosted web automation prototype using Termux, Node.js, SQLite, and Git. The system scans web pages, extracts structured page data, stores results locally, and generates markdown reports, demonstrating mobile-first AI automation workflow development without relying on VPS infrastructure.
+
+## HTTP API Server
+
+The project now includes an Express-based HTTP API server running inside Termux on the Samsung S22.
+
+Start the server:
+
+    npm run server
+
+Default API port:
+
+    3001
+
+Available endpoints:
+
+    GET  /health
+    GET  /pages
+    GET  /pages/:id
+    POST /scan
+    GET  /report/:id
+
+Example health check:
+
+    curl http://localhost:3001/health
+
+Example scan request:
+
+    curl -X POST http://localhost:3001/scan \
+      -H "Content-Type: application/json" \
+      -d '{"url":"https://example.com"}'
+
+Example LAN access from PC:
+
+    http://<S22-IP>:3001/health
+    http://<S22-IP>:3001/pages
+
+This confirms the S22 can act as a local network-accessible tool server.
+
+## Current Architecture Update
+
+Current working flow:
+
+    CLI scan        -> src/scanner.js
+    API POST /scan  -> src/scanner.js
+    MCP later       -> src/scanner.js
+
+This means the CLI and HTTP API now share the same scanner module. The next planned stage is to create an MCP server wrapper that exposes the existing scanner, database, and report functions as tools.
+
