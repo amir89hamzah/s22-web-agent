@@ -5,6 +5,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 
 const BASE_URL = process.env.JOB_RADAR_BASE_URL || 'http://127.0.0.1:3001';
+const BROWSER_WORKER_URL = process.env.BROWSER_WORKER_URL || 'http://127.0.0.1:3002';
 
 function toTextResult(data) {
   return {
@@ -61,6 +62,25 @@ async function api(path, options = {}) {
   }
 
   return body;
+}
+
+async function browserWorkerApi(path) {
+  const response = await fetch(`${BROWSER_WORKER_URL}${path}`);
+
+  const text = await response.text();
+  let data;
+
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { raw: text };
+  }
+
+  if (!response.ok) {
+    throw new Error(`Browser worker ${response.status}: ${JSON.stringify(data)}`);
+  }
+
+  return data;
 }
 
 async function safeTool(handler) {
@@ -128,6 +148,24 @@ server.tool(
 );
 
 async function main() {
+  server.tool(
+    'browser_inspect_url',
+    'Inspect a web page using the proot Playwright browser worker running on the S22.',
+    {
+      url: z.string().url().describe('The http or https URL to inspect with Chromium.'),
+    },
+    {
+      readOnlyHint: true,
+      destructiveHint: false,
+      openWorldHint: true,
+    },
+    async ({ url }) =>
+      safeTool(() => {
+        const encodedUrl = encodeURIComponent(url);
+        return browserWorkerApi(`/inspect?url=${encodedUrl}`);
+      })
+  );
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }
