@@ -122,20 +122,22 @@ server.tool(
 
 server.tool(
   'job_radar_scan',
-  'Run a job scan using the existing S22 Job Radar API.',
+  'Scan a webpage URL using the S22 Job Radar API and save the result into SQLite.',
   {
-    pageId: z.coerce.number().int().positive().optional().describe('Optional page ID to scan'),
+    url: z.string().url().describe('The http or https URL to scan.'),
   },
-  async ({ pageId }) => {
-    const body = pageId ? { pageId } : undefined;
-
-    return safeTool(() =>
+  {
+    readOnlyHint: false,
+    destructiveHint: false,
+    openWorldHint: true,
+  },
+  async ({ url }) =>
+    safeTool(() =>
       api('/scan', {
         method: 'POST',
-        body,
+        body: { url },
       })
-    );
-  }
+    )
 );
 
 server.tool(
