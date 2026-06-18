@@ -1,8 +1,7 @@
 node_modules/
 .env
-data/*.db
-reports/last-scan.json
+data/
+reports/
 backups/
+*.log
 npm-debug.log*
-reports/*.md
-server.log
