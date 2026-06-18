@@ -8,6 +8,7 @@ This project explores whether an Android phone can act as a lightweight AI autom
 
 - Scan a webpage URL from CLI
 - Scan a webpage URL through HTTP API
+- Normalize simple domain inputs such as example.com into https://example.com
 - Extract page title, description, headings, and links
 - Save scan result into SQLite
 - List saved scan records
@@ -48,6 +49,10 @@ Install dependencies:
 Scan a webpage:
 
     node src/index.js scan https://example.com
+
+Simple domain input is also supported:
+
+    node src/index.js scan example.com
 
 List saved scans:
 
@@ -131,6 +136,12 @@ Example scan request:
     curl -X POST http://localhost:3001/scan \
       -H "Content-Type: application/json" \
       -d '{"url":"https://example.com"}'
+
+Simple domain input is also supported:
+
+    curl -X POST http://localhost:3001/scan \
+      -H "Content-Type: application/json" \
+      -d '{"url":"example.com"}'
 
 Example LAN access from PC:
 
