@@ -101,6 +101,11 @@ server.tool(
   'job_radar_health',
   'Check whether the S22 Job Radar API is reachable.',
   {},
+  {
+    readOnlyHint: true,
+    destructiveHint: false,
+    openWorldHint: false,
+  },
   async () => safeTool(() => api('/health'))
 );
 
@@ -108,6 +113,11 @@ server.tool(
   'job_radar_list_pages',
   'List job source pages stored in the S22 Job Radar Agent.',
   {},
+  {
+    readOnlyHint: true,
+    destructiveHint: false,
+    openWorldHint: false,
+  },
   async () => safeTool(() => api('/pages'))
 );
 
@@ -116,6 +126,11 @@ server.tool(
   'Get one job source page by ID.',
   {
     id: z.coerce.number().int().positive().describe('Page ID from GET /pages'),
+  },
+  {
+    readOnlyHint: true,
+    destructiveHint: false,
+    openWorldHint: false,
   },
   async ({ id }) => safeTool(() => api(`/pages/${id}`))
 );
@@ -142,9 +157,14 @@ server.tool(
 
 server.tool(
   'job_radar_get_report',
-  'Get a markdown scan report by scan/report ID.',
+  'Generate a markdown scan report by saved page ID.',
   {
-    id: z.coerce.number().int().positive().describe('Report ID from scan result'),
+    id: z.coerce.number().int().positive().describe('Saved page ID from job_radar_list_pages'),
+  },
+  {
+    readOnlyHint: false,
+    destructiveHint: false,
+    openWorldHint: false,
   },
   async ({ id }) => safeTool(() => api(`/report/${id}`))
 );
