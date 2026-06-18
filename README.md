@@ -6,13 +6,16 @@ This project explores whether an Android phone can act as a lightweight AI autom
 
 ## Current Features
 
-- Scan a webpage URL
+- Scan a webpage URL from CLI
+- Scan a webpage URL through HTTP API
 - Extract page title, description, headings, and links
 - Save scan result into SQLite
 - List saved scan records
 - Show full scan detail by ID
 - Delete unwanted scan records
 - Generate markdown report from saved scan data
+- Run an MCP server skeleton
+- Inspect browser-rendered pages through MCP using a Debian proot Playwright worker
 - Track development progress using Git
 
 ## Why Samsung S22?
@@ -25,10 +28,15 @@ Instead of using a VPS or laptop as the main runtime, the phone acts as the loca
 
 - Samsung S22
 - Termux
+- Debian proot
 - Node.js
 - npm
 - Cheerio
+- Express
 - SQLite
+- MCP SDK
+- playwright-core
+- Chromium
 - Git
 
 ## Commands
@@ -70,20 +78,24 @@ Show help:
 
 ## Project Direction
 
-This project is planned to evolve into a mobile-hosted AI automation agent with:
+This project is evolving into a mobile-hosted AI automation agent with:
 
 - CLI workflow
+- HTTP API workflow
 - SQLite-backed memory
 - Markdown report generation
-- AI summarization
 - MCP tool layer
+- Browser inspection through Debian proot, Chromium, and Playwright
+- Future AI summarization
 - Optional Flowise or n8n integration
 
 ## Limitations
 
 - Some websites may block simple HTTP requests with 403 Forbidden.
-- This prototype currently extracts static HTML content only.
-- JavaScript-heavy websites may require Playwright or browser automation later.
+- The CLI and HTTP API scanner currently use static HTML extraction.
+- JavaScript-heavy websites require the separate Debian proot Playwright worker.
+- The browser worker must be started separately inside Debian proot.
+- Termux or proot may slow down when the phone screen is off.
 - The project is built for learning and portfolio demonstration, not production use.
 
 ## Portfolio Summary
@@ -131,9 +143,19 @@ This confirms the S22 can act as a local network-accessible tool server.
 
 Current working flow:
 
-    CLI scan        -> src/scanner.js
-    API POST /scan  -> src/scanner.js
-    MCP later       -> src/scanner.js
+    CLI scan                 -> src/scanner.js
+    API POST /scan           -> src/scanner.js
+    MCP browser_inspect_url  -> Debian proot Playwright worker -> Chromium
 
-This means the CLI and HTTP API now share the same scanner module. The next planned stage is to create an MCP server wrapper that exposes the existing scanner, database, and report functions as tools.
+This means the CLI and HTTP API share the same scanner module, while the MCP browser inspection tool uses a separate Playwright worker running inside Debian proot.
+
+The proot Playwright setup is documented here:
+
+    docs/proot-playwright.md
+
+Worker source files are stored here:
+
+    tools/proot-playwright-worker
+
+Future MCP tools may expose scan, list, show, and report functions.
 
