@@ -1,4 +1,4 @@
-# S22 Mobile Job Radar Agent
+# S22 Web Agent
 
 A mobile-first web automation and MCP portfolio project running on a Samsung S22 using Termux, Node.js, SQLite, Express, MCP, and Debian proot Playwright.
 

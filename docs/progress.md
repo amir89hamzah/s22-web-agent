@@ -1,4 +1,4 @@
-# S22 Mobile Job Radar Agent — Progress
+# S22 Web Agent — Progress
 
 ## Current Status
 

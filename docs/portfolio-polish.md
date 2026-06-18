@@ -2,7 +2,7 @@
 
 ## Project Positioning
 
-S22 Mobile Job Radar Agent is a mobile-first AI automation and MCP portfolio project built on a Samsung S22 using Termux.
+S22 Web Agent is a mobile-first AI automation and MCP portfolio project built on a Samsung S22 using Termux.
 
 The project demonstrates:
 - CLI automation

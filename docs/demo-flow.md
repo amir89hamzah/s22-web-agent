@@ -1,6 +1,6 @@
 # Demo Flow
 
-This document describes the recommended demo flow for the S22 Mobile Job Radar Agent.
+This document describes the recommended demo flow for the S22 Web Agent.
 
 ## Demo Goal
 

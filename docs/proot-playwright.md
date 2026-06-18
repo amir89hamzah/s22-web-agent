@@ -1,6 +1,6 @@
 # Proot Playwright Setup
 
-This document explains how the S22 Mobile Job Radar Agent runs browser inspection on Samsung S22 using Termux, Debian proot, Chromium, and Playwright.
+This document explains how the S22 Web Agent runs browser inspection on Samsung S22 using Termux, Debian proot, Chromium, and Playwright.
 
 ## Problem
 
@@ -23,7 +23,7 @@ The worker source is stored in the project repo:
 
 The worker runs inside Debian proot from this path:
 
-    /data/data/com.termux/files/home/projects/mobile-job-radar-agent/tools/proot-playwright-worker
+    /data/data/com.termux/files/home/projects/s22-web-agent/tools/proot-playwright-worker
 
 ## Start the worker
 
@@ -33,7 +33,7 @@ From Termux:
 
 Inside Debian proot:
 
-    cd /data/data/com.termux/files/home/projects/mobile-job-radar-agent/tools/proot-playwright-worker
+    cd /data/data/com.termux/files/home/projects/s22-web-agent/tools/proot-playwright-worker
     npm install
     node server.mjs
 
