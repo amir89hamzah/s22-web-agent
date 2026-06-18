@@ -139,7 +139,7 @@ server.tool(
   'job_radar_scan',
   'Scan a webpage URL using the S22 Job Radar API and save the result into SQLite.',
   {
-    url: z.string().url().describe('The http or https URL to scan.'),
+    url: z.string().min(1).describe('The URL to scan. Accepts example.com, www.example.com, http://, or https://.'),
   },
   {
     readOnlyHint: false,

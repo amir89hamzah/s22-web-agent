@@ -4,22 +4,37 @@ const cheerio = require("cheerio");
 const { savePageScan, dbPath } = require("./db");
 const { classifyPage } = require("./classifier");
 
-async function scanUrl(url) {
-  if (!url) {
+function normalizeUrl(input) {
+  if (!input) {
     throw new Error("Missing url.");
   }
+
+  const trimmed = String(input).trim();
+
+  if (!trimmed) {
+    throw new Error("Missing url.");
+  }
+
+  const hasProtocol = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(trimmed);
+  const candidateUrl = hasProtocol ? trimmed : `https://${trimmed}`;
 
   let parsedUrl;
 
   try {
-    parsedUrl = new URL(url);
+    parsedUrl = new URL(candidateUrl);
   } catch {
-    throw new Error("Invalid url. Use a full URL like https://example.com");
+    throw new Error("Invalid url. Use a URL like example.com or https://example.com");
   }
 
   if (!["http:", "https:"].includes(parsedUrl.protocol)) {
     throw new Error("Invalid url protocol. Use http or https.");
   }
+
+  return parsedUrl;
+}
+
+async function scanUrl(url) {
+  const parsedUrl = normalizeUrl(url);
 
   const response = await fetch(parsedUrl.toString(), {
     headers: {
@@ -91,5 +106,6 @@ async function scanUrl(url) {
 }
 
 module.exports = {
+  normalizeUrl,
   scanUrl,
 };
