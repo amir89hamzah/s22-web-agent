@@ -13,7 +13,8 @@
     "api:stop": "bash scripts/stop-api.sh",
     "worker:status": "bash scripts/status-worker.sh",
     "worker:notes": "bash scripts/worker-notes.sh",
-    "smoke": "bash scripts/smoke-test.sh"
+    "smoke": "bash scripts/smoke-test.sh",
+    "mcp:http": "node src/mcp-http-server.mjs"
   },
   "keywords": [],
   "author": "",
