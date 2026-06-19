@@ -93,13 +93,13 @@ async function safeTool(handler) {
 }
 
 const server = new McpServer({
-  name: 's22-mobile-job-radar-agent',
+  name: 's22-web-agent',
   version: '0.1.0',
 });
 
 server.tool(
   'job_radar_health',
-  'Check whether the S22 Job Radar API is reachable.',
+  'Check whether the S22 Web Agent API is reachable.',
   {},
   {
     readOnlyHint: true,
@@ -111,7 +111,7 @@ server.tool(
 
 server.tool(
   'job_radar_list_pages',
-  'List job source pages stored in the S22 Job Radar Agent.',
+  'List job source pages stored in the S22 Web Agent.',
   {},
   {
     readOnlyHint: true,
@@ -137,7 +137,7 @@ server.tool(
 
 server.tool(
   'job_radar_scan',
-  'Scan a webpage URL using the S22 Job Radar API and save the result into SQLite.',
+  'Scan a webpage URL using the S22 Web Agent API and save the result into SQLite.',
   {
     url: z.string().min(1).describe('The URL to scan. Accepts example.com, www.example.com, http://, or https://.'),
   },

@@ -38,7 +38,7 @@ async function scanUrl(url) {
 
   const response = await fetch(parsedUrl.toString(), {
     headers: {
-      "User-Agent": "S22-Mobile-Job-Radar-Agent/1.0",
+      "User-Agent": "S22-Web-Agent/1.0",
     },
   });
 

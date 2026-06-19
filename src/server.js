@@ -13,7 +13,7 @@ app.use(express.json());
 app.get("/health", (req, res) => {
   res.json({
     ok: true,
-    service: "mobile-job-radar-agent",
+    service: "s22-web-agent",
     runtime: "s22-termux",
     dbPath,
     timestamp: new Date().toISOString(),
@@ -130,6 +130,6 @@ app.use((req, res) => {
 });
 
 app.listen(port, "0.0.0.0", () => {
-  console.log(`S22 Mobile Job Radar Agent API running on port ${port}`);
+  console.log(`S22 Web Agent API running on port ${port}`);
   console.log(`Health check: http://localhost:${port}/health`);
 });

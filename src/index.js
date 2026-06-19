@@ -9,7 +9,7 @@ const { scanUrl } = require("./scanner");
 require("dotenv").config({ quiet: true });
 
 function printHelp() {
-  console.log("S22 Mobile Job Radar Agent");
+  console.log("S22 Web Agent");
   console.log("");
   console.log("Usage:");
   console.log("  node src/index.js scan https://example.com");
