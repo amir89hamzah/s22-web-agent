@@ -23,11 +23,17 @@ else
   echo "Process: no PID file"
 fi
 
+echo
+
 if command -v curl >/dev/null 2>&1; then
-  echo
-  echo "Health response:"
-  curl -s "$HEALTH_URL" || true
-  echo
+  HEALTH_RESPONSE="$(curl -fsS "$HEALTH_URL" 2>/dev/null || true)"
+
+  if [ -n "$HEALTH_RESPONSE" ]; then
+    echo "Health: reachable"
+    echo "$HEALTH_RESPONSE"
+  else
+    echo "Health: not reachable"
+  fi
 else
   echo "curl not found, skipping health check"
 fi
