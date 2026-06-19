@@ -12,7 +12,8 @@
     "api:status": "bash scripts/status-api.sh",
     "api:stop": "bash scripts/stop-api.sh",
     "worker:status": "bash scripts/status-worker.sh",
-    "worker:notes": "bash scripts/worker-notes.sh"
+    "worker:notes": "bash scripts/worker-notes.sh",
+    "smoke": "bash scripts/smoke-test.sh"
   },
   "keywords": [],
   "author": "",
