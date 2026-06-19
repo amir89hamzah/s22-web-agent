@@ -5,3 +5,5 @@ reports/
 backups/
 *.log
 npm-debug.log*
+.runtime/
+*.pid
