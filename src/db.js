@@ -99,7 +99,14 @@ VALUES (
 );
 `;
 
-  runSql(sql);
+  const output = runSql(`${sql}
+SELECT last_insert_rowid();
+`);
+
+  const lines = output.trim().split(/\r?\n/).filter(Boolean);
+  const insertedId = Number.parseInt(lines[lines.length - 1] || "0", 10);
+
+  return Number.isInteger(insertedId) && insertedId > 0 ? insertedId : null;
 }
 
 function listPages() {

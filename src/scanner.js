@@ -96,10 +96,11 @@ async function scanUrl(url) {
   const outputPath = path.join(reportsDir, "last-scan.json");
   fs.writeFileSync(outputPath, JSON.stringify(result, null, 2));
 
-  savePageScan(result);
+  const pageId = savePageScan(result);
 
   return {
     result,
+    pageId,
     outputPath,
     dbPath,
   };

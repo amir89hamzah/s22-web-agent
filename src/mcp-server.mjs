@@ -1,8 +1,20 @@
 #!/usr/bin/env node
 
+import fs from 'fs';
+import path from 'path';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
+
+const require = createRequire(import.meta.url);
+const { savePageScan, dbPath } = require('./db');
+const { classifyPage } = require('./classifier');
+const { normalizeUrl } = require('./scanner');
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const BASE_URL = process.env.JOB_RADAR_BASE_URL || 'http://127.0.0.1:3001';
 const BROWSER_WORKER_URL = process.env.BROWSER_WORKER_URL || 'http://127.0.0.1:3002';
@@ -90,6 +102,111 @@ async function safeTool(handler) {
   } catch (error) {
     return toErrorResult(error);
   }
+}
+
+function normalizeBrowserHeadings(data) {
+  if (Array.isArray(data.headings)) {
+    return data.headings
+      .map((heading) => String(heading || '').trim())
+      .filter(Boolean)
+      .slice(0, 10);
+  }
+
+  if (data.h1) {
+    return [String(data.h1).trim()].filter(Boolean);
+  }
+
+  return [];
+}
+
+function normalizeBrowserLinks(data) {
+  if (!Array.isArray(data.links)) {
+    return [];
+  }
+
+  return data.links
+    .map((link) => {
+      if (typeof link === 'string') {
+        return {
+          text: link,
+          href: link,
+        };
+      }
+
+      return {
+        text: String(link.text || link.title || link.href || '').trim(),
+        href: String(link.href || link.url || '').trim(),
+      };
+    })
+    .filter((link) => link.text && link.href)
+    .slice(0, 15);
+}
+
+function truncateText(value, maxLength = 1000) {
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
+
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength)}...`;
+}
+
+function buildBrowserScanResult(url, data) {
+  const parsedUrl = normalizeUrl(url);
+
+  const result = {
+    scanned_at: new Date().toISOString(),
+    url: data.url || parsedUrl.toString(),
+    title: data.title || '',
+    description: data.description || truncateText(data.textSample || ''),
+    headings: normalizeBrowserHeadings(data),
+    links: normalizeBrowserLinks(data),
+  };
+
+  const classification = classifyPage(result);
+
+  result.category = classification.category;
+  result.relevance_score = classification.relevance_score;
+  result.notes = classification.notes;
+
+  return result;
+}
+
+async function inspectAndSaveBrowserUrl(url) {
+  const parsedUrl = normalizeUrl(url);
+  const normalizedUrl = parsedUrl.toString();
+  const encodedUrl = encodeURIComponent(normalizedUrl);
+  const inspection = await browserWorkerApi(`/inspect?url=${encodedUrl}`);
+
+  const result = buildBrowserScanResult(normalizedUrl, inspection);
+  const pageId = savePageScan(result);
+
+  const reportsDir = path.join(__dirname, '..', 'reports');
+  fs.mkdirSync(reportsDir, { recursive: true });
+
+  const outputPath = path.join(reportsDir, 'last-browser-scan.json');
+  fs.writeFileSync(
+    outputPath,
+    JSON.stringify(
+      {
+        result,
+        pageId,
+        inspection,
+      },
+      null,
+      2
+    )
+  );
+
+  return {
+    ok: true,
+    saved: true,
+    pageId,
+    result,
+    outputPath,
+    dbPath,
+  };
 }
 
 const server = new McpServer({
@@ -186,6 +303,20 @@ async function main() {
         const encodedUrl = encodeURIComponent(url);
         return browserWorkerApi(`/inspect?url=${encodedUrl}`);
       })
+  );
+
+  server.tool(
+    'browser_scan_url',
+    'Inspect a web page using the proot Playwright browser worker, classify it, and save the result into SQLite.',
+    {
+      url: z.string().min(1).describe('The URL to inspect and save. Accepts example.com, http://, or https://.'),
+    },
+    {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: true,
+    },
+    async ({ url }) => safeTool(() => inspectAndSaveBrowserUrl(url))
   );
 
   const transport = new StdioServerTransport();
