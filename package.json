@@ -10,7 +10,9 @@
     "api": "node src/server.js",
     "api:start": "bash scripts/start-api.sh",
     "api:status": "bash scripts/status-api.sh",
-    "api:stop": "bash scripts/stop-api.sh"
+    "api:stop": "bash scripts/stop-api.sh",
+    "worker:status": "bash scripts/status-worker.sh",
+    "worker:notes": "bash scripts/worker-notes.sh"
   },
   "keywords": [],
   "author": "",
