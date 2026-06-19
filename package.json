@@ -14,7 +14,10 @@
     "worker:status": "bash scripts/status-worker.sh",
     "worker:notes": "bash scripts/worker-notes.sh",
     "smoke": "bash scripts/smoke-test.sh",
-    "mcp:http": "node src/mcp-http-server.mjs"
+    "mcp:http": "node src/mcp-http-server.mjs",
+    "mcp:http:start": "bash scripts/start-mcp-http.sh",
+    "mcp:http:status": "bash scripts/status-mcp-http.sh",
+    "mcp:http:stop": "bash scripts/stop-mcp-http.sh"
   },
   "keywords": [],
   "author": "",
