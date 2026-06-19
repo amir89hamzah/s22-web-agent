@@ -17,7 +17,7 @@ Terminal 2: start Debian proot worker
 Inside Debian proot:
 
   cd /data/data/com.termux/files/home/projects/mobile-job-radar-agent/tools/proot-playwright-worker
-  node server.mjs
+  npm start
 
 Expected worker message:
 
