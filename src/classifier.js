@@ -30,8 +30,6 @@ function keywordMatches(text, keyword) {
     return false;
   }
 
-  // For single words like "ai", match whole word only.
-  // This prevents false matches such as "domain" matching "ai".
   if (/^[a-z0-9]+$/.test(normalizedKeyword)) {
     const pattern = new RegExp(
       `(^|[^a-z0-9])${escapeRegExp(normalizedKeyword)}([^a-z0-9]|$)`
@@ -40,12 +38,31 @@ function keywordMatches(text, keyword) {
     return pattern.test(text);
   }
 
-  // For phrases such as "allen bradley" or "oil & gas", use normal includes.
   return text.includes(normalizedKeyword);
 }
 
-function getMatchedKeywords(text, keywords) {
-  return keywords.filter((keyword) => keywordMatches(text, keyword));
+function normalizeKeywordRule(rule) {
+  if (typeof rule === "string") {
+    return {
+      term: rule,
+      weight: 1,
+    };
+  }
+
+  return {
+    term: rule.term,
+    weight: rule.weight || 1,
+  };
+}
+
+function getMatchedKeywords(text, keywordRules) {
+  return keywordRules
+    .map(normalizeKeywordRule)
+    .filter((rule) => keywordMatches(text, rule.term));
+}
+
+function formatMatchedKeywords(matches) {
+  return matches.map((match) => `${match.term} (+${match.weight})`).join(", ");
 }
 
 function classifyPage(result) {
@@ -53,86 +70,108 @@ function classifyPage(result) {
 
   const categoryRules = [
     {
-      category: "industrial",
+      category: "industrial_automation",
+      priority: 5,
       keywords: [
-        "plc",
-        "hmi",
-        "scada",
-        "rockwell",
-        "allen bradley",
-        "allen-bradley",
-        "vfd",
-        "drive",
-        "control",
-        "industrial",
-        "automation",
-        "electrical",
-        "instrumentation",
-        "oil",
-        "gas",
-        "safeguarding",
-        "commissioning",
-        "maintenance",
+        { term: "plc", weight: 5 },
+        { term: "hmi", weight: 5 },
+        { term: "scada", weight: 5 },
+        { term: "rockwell", weight: 5 },
+        { term: "allen bradley", weight: 5 },
+        { term: "allen-bradley", weight: 5 },
+        { term: "contrologix", weight: 5 },
+        { term: "compactlogix", weight: 5 },
+        { term: "rslogix", weight: 5 },
+        { term: "studio 5000", weight: 5 },
+        { term: "factorytalk", weight: 5 },
+        { term: "vfd", weight: 4 },
+        { term: "drive", weight: 2 },
+        { term: "automation", weight: 3 },
+        { term: "industrial", weight: 3 },
+        { term: "electrical", weight: 2 },
+        { term: "instrumentation", weight: 3 },
+        { term: "oil and gas", weight: 3 },
+        { term: "oil & gas", weight: 3 },
+        { term: "commissioning", weight: 3 },
+        { term: "maintenance", weight: 2 },
       ],
     },
     {
-      category: "ai_tool",
+      category: "ai_automation",
+      priority: 4,
       keywords: [
-        "ai",
-        "artificial intelligence",
-        "agentic",
-        "agent",
-        "agents",
-        "llm",
-        "openai",
-        "flowise",
-        "workflow",
-        "chatbot",
-        "generative",
-        "machine learning",
+        { term: "mcp", weight: 5 },
+        { term: "model context protocol", weight: 5 },
+        { term: "llm", weight: 5 },
+        { term: "openai", weight: 5 },
+        { term: "agentic", weight: 4 },
+        { term: "agent", weight: 3 },
+        { term: "agents", weight: 3 },
+        { term: "ai", weight: 3 },
+        { term: "artificial intelligence", weight: 4 },
+        { term: "workflow automation", weight: 4 },
+        { term: "automation", weight: 2 },
+        { term: "chatbot", weight: 3 },
+        { term: "generative", weight: 3 },
+        { term: "machine learning", weight: 3 },
+        { term: "playwright", weight: 4 },
+        { term: "browser automation", weight: 4 },
+        { term: "flowise", weight: 4 },
+        { term: "n8n", weight: 4 },
       ],
     },
     {
-      category: "job",
+      category: "career",
+      priority: 3,
       keywords: [
-        "career",
-        "careers",
-        "job",
-        "jobs",
-        "hiring",
-        "vacancy",
-        "role",
-        "position",
-        "apply",
-        "recruitment",
+        { term: "career", weight: 4 },
+        { term: "careers", weight: 4 },
+        { term: "job", weight: 4 },
+        { term: "jobs", weight: 4 },
+        { term: "hiring", weight: 4 },
+        { term: "vacancy", weight: 4 },
+        { term: "role", weight: 2 },
+        { term: "position", weight: 2 },
+        { term: "apply", weight: 3 },
+        { term: "recruitment", weight: 4 },
+        { term: "remote", weight: 2 },
       ],
     },
     {
-      category: "company",
+      category: "company_profile",
+      priority: 1,
       keywords: [
-        "about",
-        "company",
-        "services",
-        "solutions",
-        "contact",
-        "customer",
-        "support",
-        "products",
+        { term: "about", weight: 1 },
+        { term: "company", weight: 2 },
+        { term: "services", weight: 1 },
+        { term: "solutions", weight: 2 },
+        { term: "contact", weight: 1 },
+        { term: "customer", weight: 1 },
+        { term: "support", weight: 1 },
+        { term: "products", weight: 1 },
       ],
     },
   ];
 
   const scored = categoryRules.map((rule) => {
     const matchedKeywords = getMatchedKeywords(text, rule.keywords);
+    const score = matchedKeywords.reduce((total, match) => total + match.weight, 0);
 
     return {
       category: rule.category,
-      score: matchedKeywords.length,
+      priority: rule.priority,
+      score,
       matchedKeywords,
     };
   });
 
-  scored.sort((a, b) => b.score - a.score);
+  scored.sort((a, b) => {
+    if (b.score !== a.score) {
+      return b.score - a.score;
+    }
+
+    return b.priority - a.priority;
+  });
 
   const best = scored[0];
 
@@ -142,8 +181,11 @@ function classifyPage(result) {
 
   if (best && best.score > 0) {
     category = best.category;
-    relevanceScore = Math.min(100, 20 + best.score * 12);
-    notes = `Matched ${best.score} keyword(s) for category "${category}": ${best.matchedKeywords.join(", ")}.`;
+    relevanceScore = Math.min(100, 15 + best.score * 8);
+
+    notes = `Matched weighted keywords for category "${category}" with score ${best.score}: ${formatMatchedKeywords(
+      best.matchedKeywords
+    )}.`;
   }
 
   if (result.title) {
