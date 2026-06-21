@@ -18,7 +18,8 @@
     "mcp:http:start": "bash scripts/start-mcp-http.sh",
     "mcp:http:status": "bash scripts/status-mcp-http.sh",
     "mcp:http:stop": "bash scripts/stop-mcp-http.sh",
-    "tunnel:cloudflare": "bash scripts/mcp-http-tunnel-cloudflare.sh"
+    "tunnel:cloudflare": "bash scripts/mcp-http-tunnel-cloudflare.sh",
+    "tunnel:named:start": "bash scripts/start-named-tunnel.sh"
   },
   "keywords": [],
   "author": "",
