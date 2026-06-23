@@ -1,25 +1,30 @@
 # S22 Web Agent
 
-A mobile-first web automation and MCP portfolio project running on a Samsung S22 using Termux, Node.js, SQLite, Express, MCP, and Debian proot Playwright.
+A mobile-first web automation and MCP portfolio project running on a Samsung S22 using Termux, Node.js, SQLite, Express, MCP, Cloudflare Tunnel, and Debian proot Playwright.
 
-This project explores whether an Android phone can act as a lightweight AI automation development environment, local tool server, and browser automation node.
+This project explores whether an Android phone can act as a lightweight AI automation development environment, local tool server, MCP server, and browser automation node.
 
-## Project Goal
+## Portfolio Summary
 
-The goal of this project is to build a practical AI automation agent that runs from a Samsung S22 instead of a VPS or laptop.
+S22 Web Agent demonstrates a practical AI automation stack running from a phone instead of a VPS or laptop.
 
-It demonstrates how a phone can host:
+It includes:
 
-- CLI automation
-- HTTP API tools
-- MCP tools
-- SQLite-backed local memory
+- CLI webpage scanning
+- Local HTTP API tools
+- MCP tools over stdio
+- MCP Streamable HTTP endpoint
+- Optional bearer-token protection for remote MCP access
+- SQLite-backed local scan history
 - Markdown report generation
-- Browser inspection through Chromium and Playwright inside Debian proot
+- Browser-rendered inspection through Chromium and Playwright inside Debian proot
+- Public Route A access through Cloudflare Named Tunnel
+
+The project is designed as a learning and portfolio project for AI automation engineering, MCP tool development, applied AI workflow prototyping, and constrained-device automation.
 
 ## Why Samsung S22?
 
-This project is intentionally built on Samsung S22 through Termux.
+This project is intentionally built on a Samsung S22 through Termux.
 
 Instead of using a VPS or laptop as the main runtime, the phone acts as the local development and execution environment.
 
@@ -30,6 +35,7 @@ This makes the project useful as a portfolio demonstration for:
 - Applied AI workflow prototyping
 - Mobile Linux experimentation
 - Browser automation with constrained hardware
+- Secure public tool access using a tunnel-first architecture
 
 ## Current Features
 
@@ -37,14 +43,18 @@ This makes the project useful as a portfolio demonstration for:
 - Scan a webpage URL through HTTP API
 - Normalize simple domain inputs such as `example.com` into `https://example.com/`
 - Extract page title, description, headings, and links
-- Save scan result into SQLite
+- Save scan results into SQLite
 - List saved scan records
 - Show full scan detail by ID
 - Delete unwanted scan records
-- Generate markdown report from saved scan data
-- Run an MCP server
-- Expose scan/list/page/report functions as MCP tools
+- Generate Markdown report from saved scan data
+- Run an MCP server over stdio
+- Run an MCP Streamable HTTP server on port `3003`
+- Expose scanner/list/page/report functions as MCP tools
 - Inspect browser-rendered pages through MCP using a Debian proot Playwright worker
+- Persist browser inspection scan outputs
+- Protect public MCP access with optional bearer token authentication
+- Expose the MCP HTTP server publicly through Cloudflare Named Tunnel
 - Track development progress using Git
 
 ## Tech Stack
@@ -60,143 +70,316 @@ This makes the project useful as a portfolio demonstration for:
 - MCP SDK
 - playwright-core
 - Chromium
+- Cloudflare Tunnel
 - Git
 
 ## Architecture
 
-Current working flow:
+### Local CLI and API Flow
 
-    ChatGPT / MCP Inspector
-              |
-              v
-    MCP Server on Samsung S22
-              |
-              v
-    HTTP API Server on port 3001
-              |
-              v
-    Scanner + SQLite database
-
-Browser inspection flow:
-
-    MCP browser_inspect_url
-              |
-              v
-    Debian proot Playwright worker on port 3002
-              |
-              v
-    Chromium headless browser
+```text
+CLI command / HTTP API request
+          |
+          v
+Scanner module
+          |
+          v
+SQLite database + Markdown reports
+```
 
 The CLI and HTTP API share the same scanner module.
 
-    CLI scan        -> src/scanner.js
-    API POST /scan  -> src/scanner.js
+```text
+CLI scan        -> src/scanner.js
+API POST /scan  -> src/scanner.js
+```
+
+### Local MCP Flow
+
+```text
+ChatGPT / MCP Inspector
+          |
+          v
+MCP server on Samsung S22
+          |
+          v
+HTTP API server on port 3001
+          |
+          v
+Scanner + SQLite database
+```
+
+### Browser Inspection Flow
+
+```text
+MCP browser tool
+          |
+          v
+Debian proot Playwright worker on port 3002
+          |
+          v
+Chromium headless browser
+```
 
 The browser inspection tool uses a separate Playwright worker running inside Debian proot.
+
+### Route A Public MCP Flow
+
+```text
+Remote MCP client
+          |
+          v
+https://s22agent.aidesk.rest/mcp
+          |
+          v
+Cloudflare Named Tunnel
+          |
+          v
+Samsung S22 MCP HTTP server on 127.0.0.1:3003/mcp
+```
+
+Route A exposes only the MCP HTTP server on port `3003`.
+
+The local HTTP API on port `3001` and the Debian proot Playwright worker on port `3002` are not exposed publicly.
+
+## Security Boundary
+
+Route A follows a strict security boundary:
+
+- Public access is allowed only through the MCP HTTP endpoint on port `3003`.
+- The local API server on port `3001` must remain local-only.
+- The Playwright worker on port `3002` must remain local-only.
+- `MCP_HTTP_TOKEN` is created locally and must not be committed or shared.
+- `CLOUDFLARE_TUNNEL_TOKEN` comes from Cloudflare and must not be committed or shared.
+- Public MCP access should use bearer authentication.
+
+Expected public no-token behavior:
+
+```text
+401 Unauthorized
+```
+
+This confirms that the public MCP endpoint requires authentication when `MCP_HTTP_TOKEN` is enabled.
+
+## Route A Status
+
+Route A Named Tunnel live testing has passed.
+
+Verified checks:
+
+- Public no-token request returned `401`
+- MCP `initialize` returned `200`
+- MCP `notifications/initialized` returned `202`
+- MCP `tools/list` returned `200`
+- `job_radar_health` returned `ok: true`
+- `job_radar_scan` with `example.com` returned `ok: true`
+
+MCP Inspector testing over the public endpoint is optional because curl-based MCP proof has already verified the core Route A flow.
 
 ## CLI Usage
 
 Install dependencies:
 
-    npm install
+```bash
+npm install
+```
 
 Scan a webpage:
 
-    node src/index.js scan https://example.com
+```bash
+node src/index.js scan https://example.com
+```
 
 Simple domain input is also supported:
 
-    node src/index.js scan example.com
+```bash
+node src/index.js scan example.com
+```
 
 List saved scans:
 
-    node src/index.js list
+```bash
+node src/index.js list
+```
 
 Show scan detail:
 
-    node src/index.js show 1
+```bash
+node src/index.js show 1
+```
 
 Delete scan record:
 
-    node src/index.js delete 1
+```bash
+node src/index.js delete 1
+```
 
-Generate markdown report:
+Generate Markdown report:
 
-    node src/index.js report 1
+```bash
+node src/index.js report 1
+```
 
 Show help:
 
-    node src/index.js help
+```bash
+node src/index.js help
+```
 
 ## Example CLI Flow
 
-    node src/index.js scan example.com
-    node src/index.js list
-    node src/index.js show 1
-    node src/index.js report 1
+```bash
+node src/index.js scan example.com
+node src/index.js list
+node src/index.js show 1
+node src/index.js report 1
+```
 
 ## HTTP API Server
 
 The project includes an Express-based HTTP API server running inside Termux on the Samsung S22.
 
-Start the server:
+Start the local API server:
 
-    npm run server
+```bash
+npm run server
+```
 
 Default API port:
 
-    3001
+```text
+3001
+```
 
 Available endpoints:
 
-    GET  /health
-    GET  /pages
-    GET  /pages/:id
-    POST /scan
-    GET  /report/:id
+```text
+GET  /health
+GET  /pages
+GET  /pages/:id
+POST /scan
+GET  /report/:id
+```
 
 Example health check:
 
-    curl http://localhost:3001/health
+```bash
+curl http://localhost:3001/health
+```
 
 Example scan request:
 
-    curl -X POST http://localhost:3001/scan \
-      -H "Content-Type: application/json" \
-      -d '{"url":"https://example.com"}'
+```bash
+curl -X POST http://localhost:3001/scan \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com"}'
+```
 
 Simple domain input is also supported:
 
-    curl -X POST http://localhost:3001/scan \
-      -H "Content-Type: application/json" \
-      -d '{"url":"example.com"}'
+```bash
+curl -X POST http://localhost:3001/scan \
+  -H "Content-Type: application/json" \
+  -d '{"url":"example.com"}'
+```
 
 Example LAN access from PC:
 
-    http://<S22-IP>:3001/health
-    http://<S22-IP>:3001/pages
+```text
+http://<S22-IP>:3001/health
+http://<S22-IP>:3001/pages
+```
 
 This confirms the S22 can act as a local network-accessible tool server.
 
 ## MCP Tools
 
-The project includes an MCP server that exposes the scanner and browser inspection features as tools.
+The project includes MCP servers that expose the scanner and browser inspection features as tools.
 
-Tested MCP tools:
+Main MCP tools include:
 
+- `job_radar_health`
 - `job_radar_scan`
 - `job_radar_list_pages`
 - `job_radar_get_page`
 - `job_radar_get_report`
 - `browser_inspect_url`
+- `browser_scan_url`
 
-Start the MCP server:
+Start the stdio MCP server:
 
-    npm run mcp
+```bash
+npm run mcp
+```
 
-Example MCP Inspector usage:
+Example MCP Inspector usage for stdio mode:
 
-    npx @modelcontextprotocol/inspector npm run mcp
+```bash
+npx @modelcontextprotocol/inspector npm run mcp
+```
+
+## MCP Streamable HTTP Server
+
+The project also supports MCP over Streamable HTTP.
+
+Default MCP HTTP endpoint:
+
+```text
+http://127.0.0.1:3003/mcp
+```
+
+Start the MCP HTTP server:
+
+```bash
+npm run mcp:http:start
+```
+
+Check MCP HTTP server status:
+
+```bash
+npm run mcp:http:status
+```
+
+Stop the MCP HTTP server:
+
+```bash
+npm run mcp:http:stop
+```
+
+## Route A Runtime Helpers
+
+Route A uses helper scripts to start and stop the public MCP setup safely.
+
+Start Route A:
+
+```bash
+npm run route:a:start
+```
+
+Check Route A status:
+
+```bash
+npm run route:a:status
+```
+
+Stop Route A:
+
+```bash
+npm run route:a:stop
+```
+
+Route A is designed to expose only:
+
+```text
+127.0.0.1:3003/mcp
+```
+
+Never expose these ports publicly:
+
+```text
+3001  HTTP API server
+3002  Playwright worker
+```
 
 ## Debian Proot Playwright Worker
 
@@ -206,15 +389,21 @@ For that case, the project uses a Debian proot worker running Chromium through P
 
 Default worker port:
 
-    3002
+```text
+3002
+```
 
 The proot Playwright setup is documented here:
 
-    docs/proot-playwright.md
+```text
+docs/proot-playwright.md
+```
 
 Worker source files are stored here:
 
-    tools/proot-playwright-worker
+```text
+tools/proot-playwright-worker
+```
 
 ## URL Normalization
 
@@ -222,11 +411,15 @@ The scanner supports simple domain input.
 
 Example:
 
-    example.com
+```text
+example.com
+```
 
 is normalized to:
 
-    https://example.com/
+```text
+https://example.com/
+```
 
 This works through:
 
@@ -238,17 +431,42 @@ This works through:
 
 Additional project notes:
 
-    docs/progress.md
-    docs/portfolio-polish.md
-    docs/proot-playwright.md
+```text
+docs/progress.md
+docs/portfolio-polish.md
+docs/proot-playwright.md
+docs/mcp-http-auth.md
+docs/run-public-tunnel-demo.md
+docs/route-a-named-tunnel.md
+docs/route-a-live-test-results.md
+docs/route-a-operator-runbook.md
+```
+
+## Sample Outputs
+
+Sample output and screenshots are stored in:
+
+```text
+samples/
+screenshots/
+```
+
+Generated runtime data is intentionally ignored by Git:
+
+```text
+data/
+reports/
+.runtime/
+```
 
 ## Limitations
 
-- Some websites may block simple HTTP requests with 403 Forbidden.
+- Some websites may block simple HTTP requests with `403 Forbidden`.
 - The CLI and HTTP API scanner currently use static HTML extraction.
 - JavaScript-heavy websites require the separate Debian proot Playwright worker.
 - The browser worker must be started separately inside Debian proot.
 - Termux or proot may slow down when the phone screen is off.
+- Public Route A access depends on the local phone runtime, MCP HTTP server, and Cloudflare tunnel being active.
 - The project is built for learning and portfolio demonstration, not production use.
 
 ## Roadmap
@@ -256,20 +474,8 @@ Additional project notes:
 Planned improvements:
 
 - Add architecture diagram image
-- Add screenshots for GitHub demo
-- Add `.env.example`
-- Add license file
-- Add sample scan output
-- Add screenshot capture metadata from Playwright
-- Improve classifier scoring notes
-- Improve error handling for failed scans
-- Save browser inspection result to database
-- Add portfolio demo report export
-
-## Portfolio Summary
-
-Built a Samsung S22-hosted web automation and MCP prototype using Termux, Node.js, SQLite, Express, Debian proot, Chromium, and Playwright.
-
-The system scans web pages, extracts structured page data, stores results locally, exposes results through CLI, HTTP API, and MCP tools, and generates markdown reports.
-
-This demonstrates practical AI automation workflow development without relying on VPS infrastructure.
+- Add more GitHub screenshots
+- Add a short demo GIF or video link
+- Add more browser inspection examples
+- Add safer automated smoke tests for Route A
+- Improve README with final demo section after more public testing
