@@ -8,181 +8,250 @@ Route A exposes only the MCP HTTP server through Cloudflare Named Tunnel.
 
 ```text
 https://s22agent.aidesk.rest/mcp
-Route boundary
+```
+
+## Route boundary
+
 Public:
+
+```text
 s22agent.aidesk.rest -> Cloudflare Named Tunnel -> http://127.0.0.1:3003
+```
 
 Private:
+
+```text
 http://127.0.0.1:3001  Express API
 http://127.0.0.1:3002  Playwright worker
+```
 
-Do not expose ports 3001 or 3002 publicly.
+Do not expose ports `3001` or `3002` publicly.
 
-Secrets
+## Secrets
 
-There are two different tokens:
+There are two different tokens.
 
-MCP_HTTP_TOKEN
+`MCP_HTTP_TOKEN`
+
 - Created by the operator.
 - Used by curl, MCP Inspector, or MCP clients.
-- Sent as Authorization: Bearer <token>.
+- Sent as `Authorization: Bearer <token>`.
 
-CLOUDFLARE_TUNNEL_TOKEN
+`CLOUDFLARE_TUNNEL_TOKEN`
+
 - Created by Cloudflare.
-- Used only by cloudflared to connect the Named Tunnel.
+- Used only by `cloudflared` to connect the Named Tunnel.
 
 Do not paste real tokens into chat, screenshots, Git, or documentation.
 
-1. SSH from Windows PowerShell
+## Running commands from any directory
+
+After SSH login, `npm run ...` works only when the terminal is inside the repo folder because npm needs to find `package.json`.
+
+Recommended normal flow:
+
+```bash
+cd ~/projects/mobile-job-radar-agent
+npm run route:a:status
+```
+
+Alternative from any directory:
+
+```bash
+npm --prefix ~/projects/mobile-job-radar-agent run route:a:status
+npm --prefix ~/projects/mobile-job-radar-agent run route:a:start
+npm --prefix ~/projects/mobile-job-radar-agent run route:a:stop
+```
+
+The helper scripts themselves self-locate the repository root internally, but `npm run` must still be pointed to the project folder.
+
+## 1. SSH from Windows PowerShell
+
+```powershell
 ssh u_a328@192.168.100.178 -p 8022
+```
 
 If the IP changes, check the S22 IP address again.
 
-2. Check repository
+## 2. Check repository
+
+```bash
 cd ~/projects/mobile-job-radar-agent
 git status --short
 git branch --show-current
 git log --oneline -5
+```
 
 Expected:
 
+```text
 Branch: main
 Working tree: clean
-3. Start internal API on port 3001
+```
+
+## 3. One-command Route A start
+
+For normal day-to-day operation, use the bundled Route A helper:
+
+```bash
 cd ~/projects/mobile-job-radar-agent
+npm run route:a:start
+```
 
-npm run api:start
-npm run api:status
+Or from any directory:
 
-Direct local check:
+```bash
+npm --prefix ~/projects/mobile-job-radar-agent run route:a:start
+```
 
-curl -s http://127.0.0.1:3001/health
+The helper will:
 
-Expected:
+- Show the public MCP URL
+- Show the security boundary
+- Prompt for `MCP_HTTP_TOKEN`
+- Prompt for `CLOUDFLARE_TUNNEL_TOKEN`
+- Start the internal API on port `3001`
+- Start MCP HTTP on port `3003`
+- Confirm local no-token request returns `401 Unauthorized`
+- Start the Cloudflare Named Tunnel
 
-ok: true
-service: s22-web-agent
-runtime: s22-termux
-4. Create a new MCP token
+Keep the Route A terminal open while testing.
 
-Generate a new token:
+## 4. Check Route A status
 
-node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
+From the repo folder:
 
-Copy the generated value into a private note.
+```bash
+npm run route:a:status
+```
 
-Do not paste the token into chat.
+Or from any directory:
 
-5. Start MCP HTTP on port 3003
+```bash
+npm --prefix ~/projects/mobile-job-radar-agent run route:a:status
+```
 
-Paste the token safely:
+Expected when Route A is running:
 
-read -s -p "Paste new MCP token: " MCP_HTTP_TOKEN
-echo
-export MCP_HTTP_TOKEN
+```text
+API 3001: reachable
+MCP HTTP 3003: reachable
+cloudflared: running
+```
 
-Start MCP HTTP:
+Expected MCP HTTP health output includes:
 
-npm run mcp:http:start
-npm run mcp:http:status
+```text
+auth: enabled
+```
 
-Local no-token check:
+## 5. Public no-token test from Windows PowerShell
 
-curl -i -sS http://127.0.0.1:3003/mcp
-
-Expected when auth is active:
-
-401 Unauthorized
-6. Start Cloudflare Named Tunnel
-
-Use a separate SSH session for the tunnel.
-
-cd ~/projects/mobile-job-radar-agent
-
-Paste the Cloudflare tunnel token safely:
-
-read -s -p "Paste Cloudflare tunnel token: " CLOUDFLARE_TUNNEL_TOKEN
-echo
-export CLOUDFLARE_TUNNEL_TOKEN
-
-Start tunnel:
-
-npm run tunnel:named:start
-
-Keep this session open while testing.
-
-7. Public no-token test from Windows PowerShell
+```powershell
 curl.exe -i "https://s22agent.aidesk.rest/mcp"
+```
 
 Expected:
 
+```text
 401 Unauthorized
+```
 
 This confirms:
 
+```text
 PC -> Cloudflare -> Named Tunnel -> S22 MCP HTTP 3003
-8. Store MCP token in PowerShell session
+```
+
+## 6. Store MCP token in PowerShell session
 
 Use Windows PowerShell:
 
+```powershell
 $secure = Read-Host "Paste MCP token" -AsSecureString
 $TOKEN = [Runtime.InteropServices.Marshal]::PtrToStringAuto(
   [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
 )
+```
 
 When PowerShell shows:
 
+```text
 Paste MCP token:
+```
 
 paste the MCP token.
 
-9. Initialize MCP session
+Do not paste the token into chat.
+
+## 7. Initialize MCP session
 
 Create JSON without BOM:
 
+```powershell
 '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"curl","version":"route-a-operator"}}}' | Out-File -FilePath init.json -Encoding ascii -NoNewline
+```
 
 Send initialize:
 
+```powershell
 curl.exe -i "https://s22agent.aidesk.rest/mcp" `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -H "Accept: application/json, text/event-stream" `
   --data-binary "@init.json"
+```
 
 Expected:
 
+```text
 HTTP/1.1 200 OK
 Mcp-Session-Id: <session-id>
+```
 
-Copy the Mcp-Session-Id value.
+Copy the `Mcp-Session-Id` value.
 
 Set it in PowerShell:
 
+```powershell
 $SESSION_ID = "<paste-session-id-here>"
-10. Send initialized notification
+```
+
+## 8. Send initialized notification
+
+```powershell
 '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' | Out-File -FilePath initialized.json -Encoding ascii -NoNewline
+
 curl.exe -i "https://s22agent.aidesk.rest/mcp" `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -H "Accept: application/json, text/event-stream" `
   -H "mcp-session-id: $SESSION_ID" `
   --data-binary "@initialized.json"
+```
 
 Expected:
 
+```text
 HTTP/1.1 202 Accepted
-11. List MCP tools
+```
+
+## 9. List MCP tools
+
+```powershell
 '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' | Out-File -FilePath tools-list.json -Encoding ascii -NoNewline
+
 curl.exe -i "https://s22agent.aidesk.rest/mcp" `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -H "Accept: application/json, text/event-stream" `
   -H "mcp-session-id: $SESSION_ID" `
   --data-binary "@tools-list.json"
+```
 
 Expected tools include:
 
+```text
 job_radar_health
 job_radar_list_pages
 job_radar_get_page
@@ -190,34 +259,47 @@ job_radar_scan
 job_radar_get_report
 browser_inspect_url
 browser_scan_url
-12. Test job_radar_health
+```
+
+## 10. Test job_radar_health
+
+```powershell
 '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"job_radar_health","arguments":{}}}' | Out-File -FilePath health-tool.json -Encoding ascii -NoNewline
+
 curl.exe -i "https://s22agent.aidesk.rest/mcp" `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -H "Accept: application/json, text/event-stream" `
   -H "mcp-session-id: $SESSION_ID" `
   --data-binary "@health-tool.json"
+```
 
 Expected:
 
+```text
 ok: true
 service: s22-web-agent
 runtime: s22-termux
+```
 
-If the result says fetch failed, the internal API on port 3001 is probably not running.
+If the result says fetch failed, the internal API on port `3001` is probably not running.
 
-13. Test job_radar_scan
+## 11. Test job_radar_scan
+
+```powershell
 '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"job_radar_scan","arguments":{"url":"example.com"}}}' | Out-File -FilePath scan-example.json -Encoding ascii -NoNewline
+
 curl.exe -i "https://s22agent.aidesk.rest/mcp" `
   -H "Authorization: Bearer $TOKEN" `
   -H "Content-Type: application/json" `
   -H "Accept: application/json, text/event-stream" `
   -H "mcp-session-id: $SESSION_ID" `
   --data-binary "@scan-example.json"
+```
 
 Expected:
 
+```text
 ok: true
 url: https://example.com/
 title: Example Domain
@@ -225,79 +307,123 @@ category: unknown
 relevance_score: 15
 outputPath: reports/last-scan.json
 dbPath: data/radar.db
-14. Optional MCP Inspector
+```
+
+## 12. Optional MCP Inspector
 
 MCP Inspector public URL test is optional.
 
-Use only if Node.js and npx are available on the PC.
+Use only if Node.js and `npx` are available on the PC.
 
+```bash
 npx @modelcontextprotocol/inspector
+```
 
 Connection:
 
+```text
 Transport: Streamable HTTP
 URL: https://s22agent.aidesk.rest/mcp
 Header: Authorization: Bearer <MCP_HTTP_TOKEN>
+```
 
-If npx is not available, skip MCP Inspector and use curl-based proof.
+If `npx` is not available, skip MCP Inspector and use curl-based proof.
 
-15. Shutdown
+## 13. Shutdown
 
-Stop Cloudflare tunnel.
+Stop Route A from the repo folder:
 
-If the tunnel session is still open:
-
-Ctrl + C
-
-If needed:
-
-pkill -f cloudflared
-pgrep -af cloudflared
-
-Stop MCP HTTP and API:
-
+```bash
 cd ~/projects/mobile-job-radar-agent
+npm run route:a:stop
+```
 
-npm run mcp:http:stop
-npm run api:stop
+Or from any directory:
 
-npm run mcp:http:status
+```bash
+npm --prefix ~/projects/mobile-job-radar-agent run route:a:stop
+```
+
+This stops:
+
+- Cloudflare tunnel
+- MCP HTTP server
+- Internal API server
+
+Confirm status:
+
+```bash
+npm --prefix ~/projects/mobile-job-radar-agent run route:a:status
+```
+
+Expected after shutdown:
+
+```text
+cloudflared: not running
+MCP HTTP: not reachable
+API: not reachable
+```
+
+## 14. Manual fallback commands
+
+Use these only if the bundled Route A helper is not being used.
+
+Start API:
+
+```bash
+cd ~/projects/mobile-job-radar-agent
+npm run api:start
 npm run api:status
+```
 
-Final repo check:
+Create a new MCP token:
 
-git status --short
+```bash
+node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
+```
 
-Expected:
+Copy the generated value into a private note.
 
-Working tree clean
-16. Troubleshooting guide
-curl public URL returns 401:
-Good. Auth is active.
+Do not paste the token into chat.
 
-curl public URL cannot resolve host:
-DNS or Cloudflare public hostname issue.
+Paste the token safely:
 
-curl public URL returns Cloudflare bad gateway:
-cloudflared tunnel or MCP HTTP server is not running.
+```bash
+read -s -p "Paste new MCP token: " MCP_HTTP_TOKEN
+echo
+export MCP_HTTP_TOKEN
+```
 
-initialize returns JSON parse error:
-PowerShell JSON file may contain BOM.
-Use Out-File -Encoding ascii -NoNewline.
+Start MCP HTTP:
 
-tools/call returns fetch failed:
-MCP server is running but API 3001 is not reachable.
+```bash
+npm run mcp:http:start
+npm run mcp:http:status
+```
 
-npx not recognized:
-Node.js/npx is not installed on the PC.
-Skip MCP Inspector or install Node.js.
-17. Security reminder
+Local no-token check:
 
-Before public demos:
+```bash
+curl -i -sS http://127.0.0.1:3003/mcp
+```
 
-Rotate MCP_HTTP_TOKEN.
-Do not expose API 3001.
-Do not expose Playwright worker 3002.
-Do not commit .env.
-Do not store third-party usernames or passwords in this project.
+Expected when auth is active:
+
+```text
+401 Unauthorized
+```
+
+Paste the Cloudflare tunnel token safely:
+
+```bash
+read -s -p "Paste Cloudflare tunnel token: " CLOUDFLARE_TUNNEL_TOKEN
+echo
+export CLOUDFLARE_TUNNEL_TOKEN
+```
+
+Start Named Tunnel:
+
+```bash
+npm run tunnel:named:start
+```
 
