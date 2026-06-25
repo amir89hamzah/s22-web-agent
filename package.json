@@ -22,7 +22,11 @@
     "tunnel:named:start": "bash scripts/start-named-tunnel.sh",
     "route:a:start": "bash scripts/start-route-a.sh",
     "route:a:status": "bash scripts/status-route-a.sh",
-    "route:a:stop": "bash scripts/stop-route-a.sh"
+    "route:a:stop": "bash scripts/stop-route-a.sh",
+    "openai:tunnel:start": "bash scripts/start-openai-tunnel-mode.sh",
+    "openai:tunnel:status": "bash scripts/status-openai-tunnel-mode.sh",
+    "openai:tunnel:stop": "bash scripts/stop-openai-tunnel-mode.sh",
+    "openai:tunnel:client:debian": "bash scripts/run-openai-tunnel-client-debian.sh"
   },
   "keywords": [],
   "author": "",
