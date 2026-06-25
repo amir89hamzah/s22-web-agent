@@ -19,6 +19,7 @@ It includes:
 - Markdown report generation
 - Browser-rendered inspection through Chromium and Playwright inside Debian proot
 - Public Route A access through Cloudflare Named Tunnel
+- OpenAI Secure MCP Tunnel private ChatGPT Custom App integration
 
 The project is designed as a learning and portfolio project for AI automation engineering, MCP tool development, applied AI workflow prototyping, and constrained-device automation.
 
@@ -175,6 +176,64 @@ Verified checks:
 - `job_radar_scan` with `example.com` returned `ok: true`
 
 MCP Inspector testing over the public endpoint is optional because curl-based MCP proof has already verified the core Route A flow.
+
+
+## OpenAI Secure MCP Tunnel Mode
+
+The project also supports a private ChatGPT Custom App integration through OpenAI Secure MCP Tunnel.
+
+This mode is separate from Route A Cloudflare public tunnel mode.
+
+Flow:
+
+```text
+ChatGPT Custom App
+  -> OpenAI Secure MCP Tunnel
+  -> tunnel-client inside Debian proot
+  -> Termux MCP HTTP on 127.0.0.1:3003/mcp
+  -> Termux API on 127.0.0.1:3001
+  -> SQLite/report files
+```
+
+Start local Termux services:
+
+```bash
+npm run openai:tunnel:start
+```
+
+Start the tunnel client inside Debian proot:
+
+```bash
+proot-distro login debian
+cd /data/data/com.termux/files/home/projects/mobile-job-radar-agent
+npm run openai:tunnel:client:debian
+```
+
+The Debian helper prompts for the OpenAI runtime API key if `CONTROL_PLANE_API_KEY` is not already set.
+
+The key is not stored in the repository.
+
+Check status:
+
+```bash
+npm run openai:tunnel:status
+```
+
+Stop runtime:
+
+```bash
+npm run openai:tunnel:stop
+```
+
+Phase 6 helper testing passed through ChatGPT Custom App with health, list saved pages, scan `example.com`, scan `www.exactautomation.com.my`, and health-after-scan checks.
+
+Detailed notes:
+
+```text
+docs/openai-secure-mcp-tunnel-test.md
+docs/openai-secure-mcp-tunnel-operator-runbook.md
+docs/openai-secure-mcp-tunnel-helper-test-results.md
+```
 
 ## CLI Usage
 
