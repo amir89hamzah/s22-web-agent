@@ -486,6 +486,17 @@ This works through:
 - HTTP API
 - MCP tool calls
 
+
+## LLM Repo Index
+
+For AI-assisted repo navigation, see:
+
+```text
+llm-index.yaml
+```
+
+This file summarizes runtime modes, important files, helper scripts, security boundaries, and the recommended next phase without storing secrets.
+
 ## Documentation
 
 Additional project notes:

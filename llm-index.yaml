@@ -1,0 +1,230 @@
+# LLM Repo Index for S22 Web Agent
+#
+# Purpose:
+#   Give an AI assistant a compact, safe navigation map for this repo.
+#   This file is not runtime code and should not contain secrets.
+#
+# Update rule:
+#   Update this file when architecture, runtime modes, ports, or major docs change.
+#   Do not update it for every small implementation detail.
+
+project:
+  name: s22-web-agent
+  repository: amir89hamzah/s22-web-agent
+  local_path: ~/projects/mobile-job-radar-agent
+  device: Samsung S22 running Termux
+  purpose: Mobile-first MCP and web automation portfolio project
+  current_phase: Phase 7 planning
+  next_focus: Cookie/session login workflow design
+
+high_level_status:
+  route_a_cloudflare_public_mcp: pass
+  openai_secure_mcp_tunnel_private_chatgpt_app: pass
+  debian_proot_playwright_worker: pass
+  oauth: not_started_intentionally
+  cookie_session_workflow: planned
+
+core_architecture:
+  termux:
+    api_server:
+      port: 3001
+      public_exposure: never
+      entrypoint: src/server.js
+      scripts:
+        start: npm run api:start
+        status: npm run api:status
+        stop: npm run api:stop
+    mcp_http_server:
+      port: 3003
+      public_exposure:
+        route_a: via Cloudflare Named Tunnel only
+        openai_tunnel: local-only target for tunnel-client
+      entrypoint: src/mcp-http-server.mjs
+      scripts:
+        start: npm run mcp:http:start
+        status: npm run mcp:http:status
+        stop: npm run mcp:http:stop
+    mcp_stdio_server:
+      entrypoint: src/mcp-server.mjs
+      script: npm run mcp
+  debian_proot:
+    playwright_worker:
+      port: 3002
+      public_exposure: never
+      path: tools/proot-playwright-worker/server.mjs
+    openai_tunnel_client:
+      path: /data/data/com.termux/files/home/tools/openai-tunnel/tunnel-client
+      profile: s22-web-agent-local
+      run_from: Debian proot
+      note: Direct Termux execution previously failed with unexpected e_type: 2.
+
+runtime_modes:
+  local_cli_api:
+    use_when: Local scanning and API development
+    commands:
+      scan_cli: node src/index.js scan example.com
+      start_api: npm run api:start
+      api_health: curl http://127.0.0.1:3001/health
+    notes:
+      - No tunnel required.
+      - API stays local unless user intentionally tests LAN access.
+
+  route_a_cloudflare:
+    use_when: Public demo of MCP HTTP through Cloudflare Named Tunnel
+    public_endpoint: https://s22agent.aidesk.rest/mcp
+    tunnel_name: s22-web-agent-mcp
+    commands:
+      start: npm run route:a:start
+      status: npm run route:a:status
+      stop: npm run route:a:stop
+    security:
+      expose_only:
+        - 3003
+      never_expose:
+        - 3001
+        - 3002
+      secrets:
+        - MCP_HTTP_TOKEN
+        - CLOUDFLARE_TUNNEL_TOKEN
+    primary_docs:
+      - docs/route-a-operator-runbook.md
+      - docs/route-a-live-test-results.md
+      - docs/route-a-named-tunnel.md
+
+  openai_secure_mcp_tunnel:
+    use_when: Private ChatGPT Custom App integration without public Cloudflare endpoint
+    flow: ChatGPT Custom App -> OpenAI Secure MCP Tunnel -> Debian tunnel-client -> Termux MCP HTTP 3003 -> API 3001
+    commands:
+      termux_start: npm run openai:tunnel:start
+      debian_client: npm run openai:tunnel:client:debian
+      status: npm run openai:tunnel:status
+      stop: npm run openai:tunnel:stop
+    security:
+      cloudflare: do_not_start
+      mcp_http_auth: disabled locally for the tunnel path
+      runtime_key: prompted interactively
+      never_commit:
+        - CONTROL_PLANE_API_KEY
+    known_warning:
+      oauth_metadata_404: expected for current non-OAuth mode
+    primary_docs:
+      - docs/openai-secure-mcp-tunnel-test.md
+      - docs/openai-secure-mcp-tunnel-operator-runbook.md
+      - docs/openai-secure-mcp-tunnel-helper-test-results.md
+
+  debian_playwright_worker:
+    use_when: Browser-rendered page inspection
+    commands:
+      status: npm run worker:status
+      notes: npm run worker:notes
+    primary_docs:
+      - docs/proot-playwright.md
+    caution:
+      - Keep worker local on port 3002.
+      - Avoid heavy background browser automation on S22 unless needed.
+
+important_files:
+  start_here:
+    - README.md
+    - TODO.md
+    - llm-index.yaml
+  core_runtime:
+    - src/index.js
+    - src/server.js
+    - src/scanner.js
+    - src/db.js
+    - src/report.js
+    - src/classifier.js
+    - src/mcp-core.mjs
+    - src/mcp-server.mjs
+    - src/mcp-http-server.mjs
+  route_a_helpers:
+    - scripts/start-route-a.sh
+    - scripts/status-route-a.sh
+    - scripts/stop-route-a.sh
+  openai_tunnel_helpers:
+    - scripts/start-openai-tunnel-mode.sh
+    - scripts/status-openai-tunnel-mode.sh
+    - scripts/stop-openai-tunnel-mode.sh
+    - scripts/run-openai-tunnel-client-debian.sh
+  api_helpers:
+    - scripts/start-api.sh
+    - scripts/status-api.sh
+    - scripts/stop-api.sh
+  mcp_http_helpers:
+    - scripts/start-mcp-http.sh
+    - scripts/status-mcp-http.sh
+    - scripts/stop-mcp-http.sh
+  worker:
+    - tools/proot-playwright-worker/server.mjs
+    - tools/proot-playwright-worker/README.md
+
+security_rules:
+  - Never expose API port 3001 publicly.
+  - Never expose Playwright worker port 3002 publicly.
+  - In Route A, expose only MCP HTTP port 3003 through Cloudflare.
+  - In OpenAI Secure MCP Tunnel mode, do not start Route A.
+  - Never commit MCP_HTTP_TOKEN.
+  - Never commit CLOUDFLARE_TUNNEL_TOKEN.
+  - Never commit CONTROL_PLANE_API_KEY.
+  - Treat cookie/session files as secrets.
+  - Do not paste passwords, cookies, or runtime keys into public docs or chat.
+  - Keep reports, database files, logs, and .runtime files out of git.
+
+git_ignored_runtime_artifacts:
+  - .env
+  - data/
+  - reports/
+  - .runtime/
+  - "*.log"
+
+docs_map:
+  overview:
+    - README.md
+    - TODO.md
+  route_a:
+    - docs/route-a-operator-runbook.md
+    - docs/route-a-live-test-results.md
+    - docs/route-a-named-tunnel.md
+    - docs/run-public-tunnel-demo.md
+    - docs/tunnel-architecture.md
+  openai_secure_mcp_tunnel:
+    - docs/openai-secure-mcp-tunnel-test.md
+    - docs/openai-secure-mcp-tunnel-operator-runbook.md
+    - docs/openai-secure-mcp-tunnel-helper-test-results.md
+  mcp:
+    - docs/mcp-http-auth.md
+  playwright:
+    - docs/proot-playwright.md
+  portfolio:
+    - docs/demo-flow.md
+    - docs/portfolio-polish.md
+    - samples/example-scan-output.md
+
+next_phase:
+  phase: Phase 7
+  recommended_first_step: Cookie/session login workflow design document
+  reason: More useful than OAuth for authenticated target websites because OAuth protects access to the S22 MCP tools, while cookies/sessions allow Playwright or browser workflows to access target sites after user-controlled login.
+  avoid_now:
+    - OAuth implementation unless production-style app authentication is required
+    - Heavy scanner fallback logic
+    - Background scheduling
+    - Automatic credential entry
+    - Storing credentials in scripts or repo
+
+llm_guidance:
+  if_user_asks_to_run_openai_tunnel:
+    - Use npm run openai:tunnel:start in Termux.
+    - Use npm run openai:tunnel:client:debian inside Debian proot.
+    - Do not use route:a:start for OpenAI tunnel mode.
+    - Remind user to paste the real OpenAI runtime API key only into the hidden prompt.
+  if_user_asks_to_run_route_a:
+    - Use npm run route:a:start.
+    - Confirm only port 3003 is exposed.
+    - Do not expose 3001 or 3002.
+  if_user_asks_about_login_required_sites:
+    - Prefer Phase 7 cookie/session workflow discussion.
+    - Do not ask user to paste passwords or cookies into chat.
+  if_user_asks_about_oauth:
+    - Explain OAuth as access control for the MCP tools.
+    - Do not confuse OAuth with login to target websites.
