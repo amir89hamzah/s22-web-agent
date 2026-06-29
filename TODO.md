@@ -234,3 +234,32 @@ Next:
 - [ ] Phase 7C-2 / 7C-3: implement Session Capture Mode to save `.runtime/sessions/<profile>/storageState.json`.
 
 <!-- PHASE7C1_VNC_HELPERS_END -->
+
+<!-- PHASE7C2_SESSION_CAPTURE_PROOF_START -->
+
+## Phase 7C-2 — Session Capture Mode Proof
+
+Status: dummy proof PASS.
+
+Added:
+
+- [x] Visible Playwright capture helper.
+- [x] `npm run session:capture:example`.
+- [x] `npm run session:capture:start`.
+- [x] `npm run session:capture:status`.
+- [x] Safe profile-name validation.
+- [x] Domain allowlist check.
+- [x] Save `storageState.json` under `.runtime/sessions/<profile>/`.
+- [x] Save metadata without cookie/session values.
+
+First proof target:
+
+- [x] Run with `example-proof` profile and `https://example.com/`.
+- [x] Confirm Chromium opens visibly in AVNC.
+- [x] Press Enter to save storageState.
+- [x] Confirm `.runtime/` artifacts do not appear in git status.
+- [x] Stop VNC after proof.
+
+Real website login remains later after dummy proof passes.
+
+<!-- PHASE7C2_SESSION_CAPTURE_PROOF_END -->

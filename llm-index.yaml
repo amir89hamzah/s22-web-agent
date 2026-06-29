@@ -298,3 +298,29 @@ phase7c1_vnc_baseline:
     - stop VNC after capture or testing
     - no passwords/cookies/tokens/storageState values in ChatGPT
     - no session artifacts in git
+
+phase7c2_session_capture_proof:
+  status: dummy_proof_pass
+  proof_doc: docs/session-gateway-capture-proof.md
+  helper_scripts:
+    start: scripts/session-capture-start.sh
+    status: scripts/session-capture-status.sh
+    engine: tools/proot-playwright-worker/session-capture.mjs
+  npm_scripts:
+    - session:capture:example
+    - session:capture:start
+    - session:capture:status
+  first_profile: example-proof
+  first_url: https://example.com/
+  output:
+    storage_state: .runtime/sessions/<profile>/storageState.json
+    metadata: .runtime/sessions/<profile>/metadata.json
+  safety:
+    - first proof uses example.com only
+    - real website login later after dummy proof passes
+    - no passwords/cookies/tokens/storageState values in ChatGPT
+    - no arbitrary file paths from MCP prompt
+    - safe profile names only
+    - domain allowlist check
+    - local VNC only
+    - stop VNC after capture

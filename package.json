@@ -29,7 +29,10 @@
     "openai:tunnel:client:debian": "bash scripts/run-openai-tunnel-client-debian.sh",
     "session:vnc:start": "bash scripts/session-vnc-start.sh",
     "session:vnc:status": "bash scripts/session-vnc-status.sh",
-    "session:vnc:stop": "bash scripts/session-vnc-stop.sh"
+    "session:vnc:stop": "bash scripts/session-vnc-stop.sh",
+    "session:capture:example": "bash scripts/session-capture-start.sh example-proof https://example.com/ example.com",
+    "session:capture:start": "bash scripts/session-capture-start.sh",
+    "session:capture:status": "bash scripts/session-capture-status.sh"
   },
   "keywords": [],
   "author": "",
