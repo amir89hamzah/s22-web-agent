@@ -287,3 +287,11 @@ Next:
 - [ ] Add profile-aware headless scan integration later.
 
 <!-- PHASE7C3_LOGIN_REUSE_PROOF_END -->
+
+## Phase 7D — Profile-aware Headless Scan Integration
+- [x] Add local profile-aware headless scan helper.
+- [x] Add Termux wrapper using Debian proot.
+- [x] Prove scan using local demo profile before MCP integration.
+- [ ] Integrate profile-aware scan into MCP only after helper proof is clean.
+- [ ] Real external login scans are deferred until explicitly requested.
+

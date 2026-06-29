@@ -343,3 +343,8 @@ phase7c3_login_reuse_proof:
     - session artifacts remain under .runtime/
     - VNC stopped after capture
     - demo server stopped after proof
+
+# Phase 7D — Profile-aware Headless Scan Integration
+# docs/session-gateway-profile-scan.md
+# tools/proot-playwright-worker/session-profile-scan.mjs
+# scripts/session-profile-scan.sh

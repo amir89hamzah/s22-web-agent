@@ -36,7 +36,9 @@
     "session:reuse:check": "proot-distro login debian -- bash -lc 'cd /data/data/com.termux/files/home/projects/mobile-job-radar-agent && node tools/proot-playwright-worker/session-reuse-check.mjs \"$@\"' --",
     "session:demo:start": "mkdir -p .runtime && nohup node tools/proot-playwright-worker/session-demo-server.mjs > .runtime/session-demo-server.log 2>&1 & echo $! > .runtime/session-demo-server.pid && sleep 1 && cat .runtime/session-demo-server.log",
     "session:demo:stop": "if [ -f .runtime/session-demo-server.pid ]; then kill $(cat .runtime/session-demo-server.pid) 2>/dev/null || true; rm -f .runtime/session-demo-server.pid; fi",
-    "session:demo:status": "cat .runtime/session-demo-server.log 2>/dev/null || echo 'demo server log not found'"
+    "session:demo:status": "cat .runtime/session-demo-server.log 2>/dev/null || echo 'demo server log not found'",
+    "session:profile:scan": "bash scripts/session-profile-scan.sh",
+    "session:profile:scan:demo": "bash scripts/session-profile-scan.sh local-login-demo http://127.0.0.1:3107/secure \"S22 DEMO AUTH PASS\""
   },
   "keywords": [],
   "author": "",
