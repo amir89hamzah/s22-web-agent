@@ -109,3 +109,34 @@ Safety boundary:
 - No arbitrary storageState path accepted by MCP.
 - VNC is not started by this MCP tool.
 - External real login targets remain deferred until explicitly requested.
+
+## Phase 7F Test Result
+
+Local MCP HTTP test completed successfully.
+
+Test path:
+
+```text
+curl MCP initialize
+→ tools/list
+→ browser_scan_with_profile
+→ scripts/session-profile-scan.sh
+→ Debian proot Chromium
+→ local-login-demo storageState
+→ http://127.0.0.1:3107/secure
+```
+
+Result:
+
+- `tools/list` included `browser_scan_with_profile`.
+- `tools/call` returned `ok: true`.
+- The authenticated page title was `S22 Demo Secure Area`.
+- Expected text `S22 DEMO AUTH PASS` was found.
+- The helper printed `PASS: profile-aware headless scan completed.`
+- The helper printed `No cookie/session values were printed.`
+- MCP accepted only a named profile, URL, and optional expected text.
+- No password, cookie value, token, or storageState JSON was pasted into ChatGPT.
+
+Safety note:
+
+The local test used MCP HTTP with auth disabled for local development. The MCP HTTP process was stopped after the test. Do not run a public tunnel while MCP auth is disabled.
