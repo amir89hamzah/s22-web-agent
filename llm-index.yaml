@@ -324,3 +324,22 @@ phase7c2_session_capture_proof:
     - domain allowlist check
     - local VNC only
     - stop VNC after capture
+
+phase7c3_login_reuse_proof:
+  status: pass
+  proof_doc: docs/session-gateway-login-reuse-proof.md
+  profile: local-login-demo
+  demo_server:
+    url: http://127.0.0.1:3107
+    login_path: /login
+    secure_path: /secure
+  proof_result:
+    expected_text: S22 DEMO AUTH PASS
+    headless_reuse: pass
+  safety:
+    - local demo credential only
+    - no real account password used
+    - no cookie/session/storageState values in ChatGPT
+    - session artifacts remain under .runtime/
+    - VNC stopped after capture
+    - demo server stopped after proof

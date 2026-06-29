@@ -263,3 +263,27 @@ First proof target:
 Real website login remains later after dummy proof passes.
 
 <!-- PHASE7C2_SESSION_CAPTURE_PROOF_END -->
+
+<!-- PHASE7C3_LOGIN_REUSE_PROOF_START -->
+
+## Phase 7C-3 — Local Demo Login Capture + Headless Reuse Proof
+
+Status: PASS.
+
+Completed:
+
+- [x] Added local-only demo login server.
+- [x] Started demo server at `http://127.0.0.1:3107`.
+- [x] Logged in manually through AVNC.
+- [x] Captured `local-login-demo` storageState.
+- [x] Ran headless reuse against `/secure`.
+- [x] Confirmed protected text: `S22 DEMO AUTH PASS`.
+- [x] Confirmed `.runtime/` artifacts did not enter git status.
+- [x] Stopped VNC and demo server after proof.
+
+Next:
+
+- [ ] Decide whether to test a non-sensitive external website profile.
+- [ ] Add profile-aware headless scan integration later.
+
+<!-- PHASE7C3_LOGIN_REUSE_PROOF_END -->

@@ -32,7 +32,11 @@
     "session:vnc:stop": "bash scripts/session-vnc-stop.sh",
     "session:capture:example": "bash scripts/session-capture-start.sh example-proof https://example.com/ example.com",
     "session:capture:start": "bash scripts/session-capture-start.sh",
-    "session:capture:status": "bash scripts/session-capture-status.sh"
+    "session:capture:status": "bash scripts/session-capture-status.sh",
+    "session:reuse:check": "proot-distro login debian -- bash -lc 'cd /data/data/com.termux/files/home/projects/mobile-job-radar-agent && node tools/proot-playwright-worker/session-reuse-check.mjs \"$@\"' --",
+    "session:demo:start": "mkdir -p .runtime && nohup node tools/proot-playwright-worker/session-demo-server.mjs > .runtime/session-demo-server.log 2>&1 & echo $! > .runtime/session-demo-server.pid && sleep 1 && cat .runtime/session-demo-server.log",
+    "session:demo:stop": "if [ -f .runtime/session-demo-server.pid ]; then kill $(cat .runtime/session-demo-server.pid) 2>/dev/null || true; rm -f .runtime/session-demo-server.pid; fi",
+    "session:demo:status": "cat .runtime/session-demo-server.log 2>/dev/null || echo 'demo server log not found'"
   },
   "keywords": [],
   "author": "",
