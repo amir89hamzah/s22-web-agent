@@ -14,7 +14,7 @@ if [[ ! -d "$REPO/.git" ]]; then
 fi
 
 proot-distro login debian -- bash -lc '
-  set -euo pipefail
-  cd /data/data/com.termux/files/home/projects/mobile-job-radar-agent
-  node tools/proot-playwright-worker/session-profile-scan.mjs "$@"
+set -euo pipefail
+cd /data/data/com.termux/files/home/projects/mobile-job-radar-agent
+node tools/proot-playwright-worker/session-profile-scan.mjs "$@"
 ' -- "$@"
