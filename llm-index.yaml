@@ -270,3 +270,31 @@ phase7_user_controlled_session_gateway:
     - stop VNC/tunnel after capture
     - expose only MCP HTTP 3003 in public tunnel modes
     - never expose API 3001 or Playwright worker 3002
+
+phase7c1_vnc_baseline:
+  status: pass
+  result_doc: docs/session-gateway-vnc-smoke-test-results.md
+  helper_scripts:
+    start: scripts/session-vnc-start.sh
+    status: scripts/session-vnc-status.sh
+    stop: scripts/session-vnc-stop.sh
+  npm_scripts:
+    - session:vnc:start
+    - session:vnc:status
+    - session:vnc:stop
+  access_mode: local_only
+  vnc:
+    display: ":1"
+    port: 5901
+    bind: 127.0.0.1
+    client: AVNC on S22
+  verified:
+    - TigerVNC local-only server
+    - Openbox desktop
+    - xterm visible
+    - Chromium visible with example.com
+  safety:
+    - do not expose raw VNC publicly
+    - stop VNC after capture or testing
+    - no passwords/cookies/tokens/storageState values in ChatGPT
+    - no session artifacts in git

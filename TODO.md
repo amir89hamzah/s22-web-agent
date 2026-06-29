@@ -207,3 +207,30 @@ These items are intentionally not prioritized now:
 - [ ] Add background scheduling
 - [ ] Add mobile app packaging
 - [ ] Add multi-user auth
+
+<!-- PHASE7C1_VNC_HELPERS_START -->
+
+## Phase 7C-1 — Local VNC Baseline Helpers
+
+Status: PASS / ready to commit.
+
+Completed manually before helper patch:
+
+- [x] Installed TigerVNC, Openbox, xterm, and supporting packages inside Debian proot.
+- [x] Started local-only TigerVNC on display `:1` / port `5901`.
+- [x] Connected from AVNC on S22 to `127.0.0.1:5901`.
+- [x] Confirmed Openbox + `xterm` visible.
+- [x] Confirmed Chromium visible with `https://example.com`.
+- [x] Stopped VNC and cleaned stale Chromium/VNC artifacts.
+
+Helper scripts added:
+
+- [x] `npm run session:vnc:start`
+- [x] `npm run session:vnc:status`
+- [x] `npm run session:vnc:stop`
+
+Next:
+
+- [ ] Phase 7C-2 / 7C-3: implement Session Capture Mode to save `.runtime/sessions/<profile>/storageState.json`.
+
+<!-- PHASE7C1_VNC_HELPERS_END -->
