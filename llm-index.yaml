@@ -228,3 +228,45 @@ llm_guidance:
   if_user_asks_about_oauth:
     - Explain OAuth as access control for the MCP tools.
     - Do not confuse OAuth with login to target websites.
+
+phase7_user_controlled_session_gateway:
+  status: design_first
+  phase_name: User-Controlled Session Gateway
+  primary_doc: docs/session-gateway-design.md
+  roadmap: TODO.md
+  runtime_secret_boundary:
+    - no passwords in ChatGPT
+    - no cookies in ChatGPT
+    - no session tokens in ChatGPT
+    - no storageState JSON in ChatGPT
+    - no cookie/session/storageState files in git
+  options:
+    cookie_json_import:
+      label: Option A
+      status: deferred_later
+      inbox: Android Download folder
+      local_destination: .runtime/sessions/<profile>/
+      notes:
+        - lightweight proof only
+        - user-agent mismatch risk
+        - localStorage/sessionStorage may be missing
+        - Android browser extension support uncertain
+    playwright_manual_login_vnc:
+      label: Option B
+      status: preferred_next_practical_path
+      default_access: local VNC on S22
+      output: .runtime/sessions/<profile>/storageState.json
+      notes:
+        - Debian proot runs temporary visible Chromium/Playwright
+        - user logs in manually
+        - GUI/VNC closes after capture
+        - future scans run headless using storageState
+        - noVNC/Cloudflare temporary link optional later only with strong access protection
+  security_rules:
+    - named session profile only
+    - no arbitrary file path from MCP prompt
+    - domain allowlist per profile
+    - do not expose raw VNC publicly
+    - stop VNC/tunnel after capture
+    - expose only MCP HTTP 3003 in public tunnel modes
+    - never expose API 3001 or Playwright worker 3002

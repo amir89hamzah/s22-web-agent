@@ -1,5 +1,49 @@
 # S22 Web Agent - Task List
 
+<!-- PHASE7_SESSION_GATEWAY_START -->
+
+## Phase 7 — User-Controlled Session Gateway
+
+Status: Phase 7A design-first.
+
+### Phase 7A — Design doc
+
+- [x] Create `docs/session-gateway-design.md`.
+- [x] Cover Option A — Cookie JSON Import via Download folder.
+- [x] Cover Option B — Playwright Manual Login via VNC / Session Capture Mode.
+- [x] State that OAuth is separate and later.
+- [x] Keep default Option B as local VNC on S22.
+- [x] Keep noVNC/Cloudflare temporary login link as optional later only with strong access protection.
+- [x] Add git ignore rules for runtime session artifacts.
+
+### Phase 7B — Cookie JSON proof
+
+Status: deferred / later.
+
+Reason: user is short on time. Cookie JSON import is useful for a lightweight proof, but the practical direction is Option B / Session Capture Mode because Playwright `storageState` is more reliable than cookie-only import.
+
+Later tasks:
+
+- [ ] Define Download-folder cookie inbox.
+- [ ] Validate profile name and domain allowlist.
+- [ ] Import cookie JSON into `.runtime/sessions/<profile>/` without logging secrets.
+- [ ] Prove cookie/session files never enter git or ChatGPT.
+
+### Phase 7C — Playwright Manual Login via VNC / Session Capture Mode
+
+Status: preferred next practical implementation after design review.
+
+Planned direction:
+
+- [ ] Start temporary visible Chromium/Playwright in Debian proot.
+- [ ] Control it through local VNC on S22.
+- [ ] User logs in manually.
+- [ ] Save `.runtime/sessions/<profile>/storageState.json`.
+- [ ] Close GUI/VNC after capture.
+- [ ] Future scans run headless using named profile and domain allowlist.
+
+<!-- PHASE7_SESSION_GATEWAY_END -->
+
 This file tracks the current engineering roadmap for the S22 Web Agent portfolio project.
 
 The project started as a mobile job radar scanner and has evolved into a Samsung S22-hosted MCP/web automation agent.

@@ -7,3 +7,17 @@ backups/
 npm-debug.log*
 .runtime/
 *.pid
+
+# Phase 7 runtime session/capture artifacts
+**/storageState.json
+**/*storageState*.json
+**/*storage-state*.json
+**/cookies.json
+**/*cookie*.json
+**/*cookies*.json
+playwright/.auth/
+.vnc/
+*.vnc.log
+*.vnc.pid
+novnc.log
+websockify.log
