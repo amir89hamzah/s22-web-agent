@@ -352,3 +352,8 @@ phase7c3_login_reuse_proof:
 # Phase 7E — Proof Guard Hardening
 # scripts/session-profile-scan-proof.sh
 # npm scripts: session:profile:guard, session:profile:proof, session:profile:proof:demo
+
+# Phase 7F — MCP Profile Scan Integration
+# src/mcp-core.mjs
+# MCP tool: browser_scan_with_profile
+# Reuses scripts/session-profile-scan.sh

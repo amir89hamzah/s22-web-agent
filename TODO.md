@@ -302,3 +302,11 @@ Next:
 - [x] Add proof command that fails unless safe PASS output is found.
 - [x] Document Phase 7D recovery lesson.
 - [ ] Integrate profile-aware scan into MCP only after proof guard remains clean.
+
+## Phase 7F — MCP Profile Scan Integration
+- [x] Add MCP tool for profile-aware headless scan.
+- [x] Reuse existing session profile helper instead of duplicating storageState logic.
+- [x] Keep MCP input limited to profile, URL, and optional expected text.
+- [x] Keep storageState path resolution internal to the helper.
+- [ ] Test MCP tool call through local MCP HTTP.
+- [ ] Do not test external real login until explicitly requested.

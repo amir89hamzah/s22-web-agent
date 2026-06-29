@@ -87,3 +87,25 @@ Recovery lesson from Phase 7D:
 A JavaScript helper file can be empty and still pass `node --check`. Therefore syntax checks alone are not enough. The proof guard must check file size, required code markers, and actual scan PASS output before committing.
 
 The proof guard must never print cookies, storageState JSON, authorization headers, passwords, or session tokens.
+
+## Phase 7F — MCP Profile Scan Integration
+
+Phase 7F exposes the profile-aware scan helper through MCP as `browser_scan_with_profile`.
+
+The MCP tool accepts only:
+
+- `profile`
+- `url`
+- optional `expectedText`
+
+The MCP tool does not accept a storageState path. It delegates to `scripts/session-profile-scan.sh`, which resolves `.runtime/sessions/<profile>/storageState.json` internally and validates the target host against the profile metadata allowlist.
+
+Safety boundary:
+
+- No password in ChatGPT.
+- No cookie value in ChatGPT.
+- No storageState JSON in ChatGPT.
+- No session token in ChatGPT.
+- No arbitrary storageState path accepted by MCP.
+- VNC is not started by this MCP tool.
+- External real login targets remain deferred until explicitly requested.

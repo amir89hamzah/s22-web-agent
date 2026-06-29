@@ -1,5 +1,7 @@
 import fs from 'fs';
 import path from 'path';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -15,6 +17,11 @@ const __dirname = path.dirname(__filename);
 
 const BASE_URL = process.env.JOB_RADAR_BASE_URL || 'http://127.0.0.1:3001';
 const BROWSER_WORKER_URL = process.env.BROWSER_WORKER_URL || 'http://127.0.0.1:3002';
+const execFileAsync = promisify(execFile);
+const SAFE_PROFILE_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
+const PROFILE_SCAN_TIMEOUT_MS = Number(process.env.PROFILE_SCAN_TIMEOUT_MS || 60_000);
+const PROFILE_SCAN_MAX_BUFFER = Number(process.env.PROFILE_SCAN_MAX_BUFFER || 1_000_000);
+
 
 function toTextResult(data) {
   return {
@@ -206,6 +213,69 @@ async function inspectAndSaveBrowserUrl(url) {
   };
 }
 
+async function runProfileAwareScan({ profile, url, expectedText = '' }) {
+  const safeProfile = String(profile || '').trim();
+  const safeUrl = String(url || '').trim();
+  const safeExpectedText = String(expectedText || '');
+
+  if (!SAFE_PROFILE_RE.test(safeProfile)) {
+    throw new Error(
+      'profile invalid. Use only letters, numbers, dot, underscore, and dash; max 64 chars; first char must be alphanumeric.'
+    );
+  }
+
+  if (!safeUrl) {
+    throw new Error('url is required.');
+  }
+
+  const scriptPath = path.join(__dirname, '..', 'scripts', 'session-profile-scan.sh');
+
+  if (!fs.existsSync(scriptPath)) {
+    throw new Error(`profile scan wrapper not found: ${scriptPath}`);
+  }
+
+  const args = [scriptPath, safeProfile, safeUrl];
+
+  if (safeExpectedText) {
+    args.push(safeExpectedText);
+  }
+
+  try {
+    const { stdout, stderr } = await execFileAsync('bash', args, {
+      cwd: path.join(__dirname, '..'),
+      timeout: PROFILE_SCAN_TIMEOUT_MS,
+      maxBuffer: PROFILE_SCAN_MAX_BUFFER,
+      env: {
+        ...process.env,
+      },
+    });
+
+    return {
+      ok: true,
+      profile: safeProfile,
+      url: safeUrl,
+      expectedTextProvided: Boolean(safeExpectedText),
+      stdout: stdout.trim(),
+      stderr: stderr.trim(),
+      safety:
+        'MCP accepted only a named profile and URL. Cookies, tokens, passwords, and storageState JSON were not printed.',
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      profile: safeProfile,
+      url: safeUrl,
+      expectedTextProvided: Boolean(safeExpectedText),
+      stdout: String(error.stdout || '').trim(),
+      stderr: String(error.stderr || '').trim(),
+      error: error?.message || String(error),
+      safety:
+        'Failure output is limited to helper stdout/stderr. Cookies, tokens, passwords, and storageState JSON must not be printed.',
+    };
+  }
+}
+
+
 export function createS22McpServer() {
   const server = new McpServer({
     name: 's22-web-agent',
@@ -314,6 +384,40 @@ export function createS22McpServer() {
       openWorldHint: true,
     },
     async ({ url }) => safeTool(() => inspectAndSaveBrowserUrl(url))
+  );
+
+
+  server.tool(
+    'browser_scan_with_profile',
+    'Scan an authenticated page using a named local session profile captured on the S22. The tool never accepts a storageState path and never prints cookies or session values.',
+    {
+      profile: z
+        .string()
+        .regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/)
+        .describe('Named local session profile, for example local-login-demo. Do not provide a path.'),
+      url: z
+        .string()
+        .min(1)
+        .describe('Target http or https URL. Host must match the profile metadata allowlist.'),
+      expectedText: z
+        .string()
+        .max(500)
+        .optional()
+        .describe('Optional non-secret text expected in the page body.'),
+    },
+    {
+      readOnlyHint: true,
+      destructiveHint: false,
+      openWorldHint: true,
+    },
+    async ({ profile, url, expectedText }) =>
+      safeTool(() =>
+        runProfileAwareScan({
+          profile,
+          url,
+          expectedText,
+        })
+      )
   );
 
   return server;
