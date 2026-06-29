@@ -348,3 +348,7 @@ phase7c3_login_reuse_proof:
 # docs/session-gateway-profile-scan.md
 # tools/proot-playwright-worker/session-profile-scan.mjs
 # scripts/session-profile-scan.sh
+
+# Phase 7E — Proof Guard Hardening
+# scripts/session-profile-scan-proof.sh
+# npm scripts: session:profile:guard, session:profile:proof, session:profile:proof:demo

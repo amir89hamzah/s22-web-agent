@@ -69,3 +69,21 @@ No cookie/session values were printed.
 ## Portfolio note
 
 This phase demonstrates a safe authenticated scanning pattern for mobile-first automation: the user performs login locally through AVNC, the device stores the browser session locally, and later headless scans reuse only a named local profile.
+
+## Phase 7E — Proof Guard Hardening
+
+Phase 7E adds a proof guard wrapper around the profile-aware scan helper. It does not change the core scanner logic. The guard checks that the helper file is not empty or truncated, confirms key safety markers exist, runs the profile scan when requested, and fails unless the safe PASS output is found.
+
+New commands:
+
+```bash
+npm run session:profile:guard
+npm run session:profile:proof -- <profile> <url> <expectedText>
+npm run session:profile:proof:demo
+```
+
+Recovery lesson from Phase 7D:
+
+A JavaScript helper file can be empty and still pass `node --check`. Therefore syntax checks alone are not enough. The proof guard must check file size, required code markers, and actual scan PASS output before committing.
+
+The proof guard must never print cookies, storageState JSON, authorization headers, passwords, or session tokens.

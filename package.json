@@ -38,7 +38,10 @@
     "session:demo:stop": "if [ -f .runtime/session-demo-server.pid ]; then kill $(cat .runtime/session-demo-server.pid) 2>/dev/null || true; rm -f .runtime/session-demo-server.pid; fi",
     "session:demo:status": "cat .runtime/session-demo-server.log 2>/dev/null || echo 'demo server log not found'",
     "session:profile:scan": "bash scripts/session-profile-scan.sh",
-    "session:profile:scan:demo": "bash scripts/session-profile-scan.sh local-login-demo http://127.0.0.1:3107/secure \"S22 DEMO AUTH PASS\""
+    "session:profile:scan:demo": "bash scripts/session-profile-scan.sh local-login-demo http://127.0.0.1:3107/secure \"S22 DEMO AUTH PASS\"",
+    "session:profile:guard": "bash scripts/session-profile-scan-proof.sh --guard-only",
+    "session:profile:proof": "bash scripts/session-profile-scan-proof.sh",
+    "session:profile:proof:demo": "bash scripts/session-profile-scan-proof.sh local-login-demo http://127.0.0.1:3107/secure \"S22 DEMO AUTH PASS\""
   },
   "keywords": [],
   "author": "",

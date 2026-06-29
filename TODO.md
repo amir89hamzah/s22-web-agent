@@ -295,3 +295,10 @@ Next:
 - [ ] Integrate profile-aware scan into MCP only after helper proof is clean.
 - [ ] Real external login scans are deferred until explicitly requested.
 
+
+## Phase 7E — Proof Guard Hardening
+- [x] Add proof guard wrapper for profile-aware scan.
+- [x] Add guard-only command to detect empty/truncated helper files.
+- [x] Add proof command that fails unless safe PASS output is found.
+- [x] Document Phase 7D recovery lesson.
+- [ ] Integrate profile-aware scan into MCP only after proof guard remains clean.
