@@ -41,13 +41,16 @@ fi
 rm -f "$DONE"
 : > "$LOG"
 
-LOGIN_PROFILE="$PROFILE" LOGIN_URL="$URL" LOGIN_DISPLAY="$DISPLAY_VALUE" nohup proot-distro login debian -- bash -lc '
+nohup proot-distro login debian -- bash -lc '
   set -euo pipefail
+  LOGIN_PROFILE="$1"
+  LOGIN_URL="$2"
+  LOGIN_DISPLAY="$3"
   cd /data/data/com.termux/files/home/projects/mobile-job-radar-agent
   export DISPLAY="$LOGIN_DISPLAY"
   export CHROMIUM_EXECUTABLE="${CHROMIUM_EXECUTABLE:-/usr/bin/chromium}"
   node tools/proot-playwright-worker/session-manual-login-worker.mjs "$LOGIN_PROFILE" "$LOGIN_URL"
-' >> "$LOG" 2>&1 &
+' bash "$PROFILE" "$URL" "$DISPLAY_VALUE" >> "$LOG" 2>&1 &
 
 PID="$!"
 echo "$PID" > "$PIDFILE"
