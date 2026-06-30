@@ -247,6 +247,7 @@ async function runProfileAwareScan({ profile, url, expectedText = '' }) {
       maxBuffer: PROFILE_SCAN_MAX_BUFFER,
       env: {
         ...process.env,
+        SESSION_SCAN_SUPPRESS_EXCERPT: process.env.SESSION_SCAN_SUPPRESS_EXCERPT || '1',
       },
     });
 

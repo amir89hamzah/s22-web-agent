@@ -154,8 +154,12 @@ async function main() {
     console.log(`browserExecutable: ${executablePath}`);
     console.log(`title: ${title}`);
     console.log(`finalUrl: ${finalUrl}`);
+    if (SUPPRESS_TEXT_EXCERPT) {
+    console.log('textExcerpt: (suppressed by SESSION_SCAN_SUPPRESS_EXCERPT=1)');
+  } else {
     console.log('textExcerpt:');
     console.log(excerpt);
+  }
 
     if (expectedText && !String(bodyText).includes(expectedText)) {
       fail('expected text was not found in page body.');

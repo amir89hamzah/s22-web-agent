@@ -335,7 +335,7 @@ Exit criteria:
 
 ## Phase 7H — Pending Manual Login Job
 
-Status: in progress.
+Status: completed.
 
 Goals:
 
@@ -354,3 +354,13 @@ Exit criteria:
 - No cookie/session/token/password/storageState values are printed.
 - Main branch clean and pushed.
 
+Phase 7H real-login trial result:
+
+- Manual GitHub dummy-account login through local VNC: PASS.
+- Pending manual login completion saved `github-login-demo` profile locally.
+- Direct `session-profile-scan.sh` authenticated page scan: PASS.
+- Local MCP `browser_scan_with_profile` authenticated page scan: PASS.
+- Expected text `Public profile` found.
+- Authenticated page text excerpt suppression: PASS.
+- No cookie/session/token/password/storageState values printed.
+- Public tunnel not used.
