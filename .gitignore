@@ -21,3 +21,20 @@ playwright/.auth/
 *.vnc.pid
 novnc.log
 websockify.log
+
+# S22 Phase 7 session/profile artifacts — never commit
+.browser-profiles/
+.session-profiles/
+session-profiles/
+tmp/session-*/
+tmp/profile-*/
+storage-state*.json
+storageState*.json
+*.storageState.json
+cookies*.json
+auth-state*.json
+*.har
+trace*.zip
+playwright-report/
+test-results/
+

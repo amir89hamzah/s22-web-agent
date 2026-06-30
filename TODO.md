@@ -310,3 +310,26 @@ Next:
 - [x] Keep storageState path resolution internal to the helper.
 - [x] Test MCP tool call through local MCP HTTP.
 - [ ] Do not test external real login until explicitly requested.
+
+## Phase 7G — Pre-login Cleanup
+
+Status: planned / in progress.
+
+Goals:
+
+- Document safety boundary before real external login.
+- Confirm `browser_scan_with_profile` accepts profile/url/expectedText only.
+- Confirm password/cookie/token/storageState values are not accepted through MCP arguments.
+- Confirm session/profile artifacts are ignored by Git.
+- Re-run local profile scan sanity check.
+- Keep public tunnel off until MCP auth is enabled and intentionally started.
+
+Exit criteria:
+
+- `docs/phase-7g-pre-login-cleanup.md` committed.
+- `.gitignore` contains session/profile safety rules.
+- Local demo profile scan still passes.
+- No cookie/session/token/password values are printed.
+- Main branch clean and pushed.
+- External real login still not tested.
+
