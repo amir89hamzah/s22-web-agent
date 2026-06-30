@@ -276,6 +276,27 @@ async function runProfileAwareScan({ profile, url, expectedText = '' }) {
 }
 
 
+
+async function runManualLoginScript(scriptName, args = []) {
+  const scriptPath = path.join(__dirname, '..', 'scripts', scriptName);
+  if (!fs.existsSync(scriptPath)) {
+    throw new Error(`manual login wrapper not found: ${scriptPath}`);
+  }
+  const { stdout, stderr } = await execFileAsync('bash', [scriptPath, ...args], {
+    cwd: path.join(__dirname, '..'),
+    timeout: Number(process.env.MANUAL_LOGIN_MCP_TIMEOUT_MS || 90_000),
+    maxBuffer: Number(process.env.MANUAL_LOGIN_MCP_MAX_BUFFER || 1_000_000),
+    env: { ...process.env },
+  });
+  return {
+    ok: true,
+    command: scriptName,
+    stdout: stdout.trim(),
+    stderr: stderr.trim(),
+    safety: 'MCP accepted only profile and URL where applicable. Passwords, cookies, tokens, and storageState JSON were not accepted or printed.',
+  };
+}
+
 export function createS22McpServer() {
   const server = new McpServer({
     name: 's22-web-agent',
@@ -418,6 +439,87 @@ export function createS22McpServer() {
           expectedText,
         })
       )
+  );
+
+  
+  server.tool(
+    'browser_start_manual_login',
+    'Start a pending manual login job for a named local profile. User completes login through local aVNC/noVNC; no password, cookie, token, or storageState is accepted by MCP.',
+    {
+      profile: z
+        .string()
+        .regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/)
+        .describe('Named local session profile, for example github-login-demo. Do not provide a path or secret.'),
+      url: z
+        .string()
+        .min(1)
+        .describe('Login or landing URL to open manually in local browser. Use only an account you own.'),
+    },
+    {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: true,
+    },
+    async ({ profile, url }) => safeTool(() =>
+      runManualLoginScript('session-manual-login-start.sh', [profile, url])
+    )
+  );
+
+  server.tool(
+    'browser_manual_login_status',
+    'Check pending manual login job status for a named local profile. Does not print cookies, tokens, passwords, or storageState JSON.',
+    {
+      profile: z
+        .string()
+        .regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/)
+        .describe('Named local session profile, for example github-login-demo.'),
+    },
+    {
+      readOnlyHint: true,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
+    async ({ profile }) => safeTool(() =>
+      runManualLoginScript('session-manual-login-status.sh', [profile])
+    )
+  );
+
+  server.tool(
+    'browser_complete_manual_login',
+    'Mark a pending manual login job as completed after the user confirms login succeeded in local aVNC/noVNC. Saves storageState locally only.',
+    {
+      profile: z
+        .string()
+        .regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/)
+        .describe('Named local session profile to complete.'),
+    },
+    {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
+    async ({ profile }) => safeTool(() =>
+      runManualLoginScript('session-manual-login-complete.sh', [profile])
+    )
+  );
+
+  server.tool(
+    'browser_cancel_manual_login',
+    'Cancel a pending manual login job for a named local profile.',
+    {
+      profile: z
+        .string()
+        .regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/)
+        .describe('Named local session profile to cancel.'),
+    },
+    {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
+    async ({ profile }) => safeTool(() =>
+      runManualLoginScript('session-manual-login-cancel.sh', [profile])
+    )
   );
 
   return server;

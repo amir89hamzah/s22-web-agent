@@ -5,7 +5,7 @@ import path from 'node:path';
 const SAFE_PROFILE_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
 const DEFAULT_EXCERPT_LENGTH = 700;
 const MIN_EXCERPT_LENGTH = 80;
-const MAX_EXCERPT_LENGTH = 2000;
+const MAX_EXCERPT_LENGTH = 2000; const SUPPRESS_TEXT_EXCERPT = process.env.SESSION_SCAN_SUPPRESS_EXCERPT === '1';
 
 function fail(message, code = 1) {
   console.error(`FAIL: ${message}`);

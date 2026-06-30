@@ -333,3 +333,24 @@ Exit criteria:
 - Main branch clean and pushed.
 - External real login still not tested.
 
+## Phase 7H — Pending Manual Login Job
+
+Status: in progress.
+
+Goals:
+
+- Add MCP pending manual login job flow.
+- Add start/status/complete/cancel manual login wrappers.
+- Save storageState locally under `.runtime/sessions/<profile>/` only.
+- Keep password/cookie/token/storageState out of MCP arguments and logs.
+- Suppress authenticated page text excerpts during MCP profile scans.
+- Keep public tunnel off during the first real login trial.
+
+Exit criteria:
+
+- `browser_start_manual_login`, `browser_manual_login_status`, `browser_complete_manual_login`, and `browser_cancel_manual_login` appear in MCP tools/list.
+- Direct manual login wrapper can create a named profile.
+- `browser_scan_with_profile` works with the created profile.
+- No cookie/session/token/password/storageState values are printed.
+- Main branch clean and pushed.
+
