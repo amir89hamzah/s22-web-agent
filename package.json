@@ -45,7 +45,9 @@
     "session:manual-login:start": "bash scripts/session-manual-login-start.sh",
     "session:manual-login:status": "bash scripts/session-manual-login-status.sh",
     "session:manual-login:complete": "bash scripts/session-manual-login-complete.sh",
-    "session:manual-login:cancel": "bash scripts/session-manual-login-cancel.sh"
+    "session:manual-login:cancel": "bash scripts/session-manual-login-cancel.sh",
+    "session:vnc:start:stable": "bash scripts/session-vnc-start-stable.sh",
+    "session:vnc:stop:stable": "bash scripts/session-vnc-stop-stable.sh"
   },
   "keywords": [],
   "author": "",

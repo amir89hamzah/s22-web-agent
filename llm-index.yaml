@@ -357,3 +357,4 @@ phase7c3_login_reuse_proof:
 # src/mcp-core.mjs
 # MCP tool: browser_scan_with_profile
 # Reuses scripts/session-profile-scan.sh
+  - docs/phase-7i-repeat-auth-profile-verification.md

@@ -364,3 +364,21 @@ Phase 7H real-login trial result:
 - Authenticated page text excerpt suppression: PASS.
 - No cookie/session/token/password/storageState values printed.
 - Public tunnel not used.
+
+## Phase 7I — Repeat Authenticated Profile Verification
+
+Status: Completed / PASS.
+
+- Added stable tmux-held VNC wrapper for Debian proot manual login sessions.
+- Repeated authenticated manual login using profile `github-login-demo-2`.
+- Verified GitHub authenticated page `https://github.com/settings/appearance`.
+- Direct profile scan found expected text `Appearance`.
+- Local MCP `browser_scan_with_profile` found expected text `Appearance`.
+- Confirmed `SESSION_SCAN_SUPPRESS_EXCERPT=1` suppression.
+- Confirmed no cookie/session/token/password/storageState values were printed.
+- Public tunnel was not used.
+- Services were stopped after the run.
+
+Next:
+- Phase 7J: design authenticated continuity with secured MCP auth + tunnel safety gates before any public execution.
+
