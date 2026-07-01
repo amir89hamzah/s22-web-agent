@@ -382,3 +382,21 @@ Status: Completed / PASS.
 Next:
 - Phase 7J: design authenticated continuity with secured MCP auth + tunnel safety gates before any public execution.
 
+## Phase 7J — Remote Manual Login Gateway Design
+
+Status: Design documented.
+
+Decision:
+- Treat local aVNC login from Phase 7I as a test/proof stage.
+- Target final remote-login UX is a temporary HTTPS noVNC link.
+- noVNC should act as an adapter between browser-based login and local-only VNC 5901.
+- Do not expose raw VNC 5901 publicly.
+- Use Cloudflare Route A for the future noVNC/login gateway direction.
+- Park OpenAI Secure MCP Tunnel for later MCP-only review.
+- Keep MCP command route and noVNC human-login route as separate concerns.
+
+Next:
+- Phase 7K: local noVNC gateway proof without internet exposure.
+- Phase 7L: temporary protected Cloudflare noVNC link proof.
+- Phase 7M: full agent continuity after safety gates are proven.
+
