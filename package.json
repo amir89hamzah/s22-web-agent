@@ -50,7 +50,11 @@
     "session:vnc:stop:stable": "bash scripts/session-vnc-stop-stable.sh",
     "session:novnc:start:local": "bash tools/proot-playwright-worker/session-novnc-start-local.sh",
     "session:novnc:stop:local": "bash tools/proot-playwright-worker/session-novnc-stop-local.sh",
-    "session:novnc:status:local": "bash tools/proot-playwright-worker/session-novnc-status-local.sh"
+    "session:novnc:status:local": "bash tools/proot-playwright-worker/session-novnc-status-local.sh",
+    "session:manual-login:novnc:start": "bash scripts/session-manual-login-novnc-local-start.sh",
+    "session:manual-login:novnc:status": "bash scripts/session-manual-login-novnc-local-status.sh",
+    "session:manual-login:novnc:complete": "bash scripts/session-manual-login-novnc-local-complete.sh",
+    "session:manual-login:novnc:cancel": "bash scripts/session-manual-login-novnc-local-cancel.sh"
   },
   "keywords": [],
   "author": "",
