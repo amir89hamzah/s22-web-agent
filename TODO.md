@@ -396,7 +396,17 @@ Decision:
 - Keep MCP command route and noVNC human-login route as separate concerns.
 
 Next:
-- Phase 7K: local noVNC gateway proof without internet exposure.
-- Phase 7L: temporary protected Cloudflare noVNC link proof.
-- Phase 7M: full agent continuity after safety gates are proven.
+- Phase 7M: local noVNC-assisted manual login job integration.
+- Phase 7N: temporary protected Cloudflare noVNC link proof.
+- Phase 7O: full agent continuity after safety gates are proven.
 
+## Phase 7L — Public HTTPS noVNC Gateway Design
+
+Status: Completed — design only.
+
+Notes:
+- Designed future temporary HTTPS noVNC login route.
+- No public tunnel was started.
+- Raw VNC `5901` must remain local-only.
+- API `3001` and Playwright worker `3002` must not be exposed.
+- Future public noVNC route must be temporary, token-protected, timeout-bound, and human-controlled.

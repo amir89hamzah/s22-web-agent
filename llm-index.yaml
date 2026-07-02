@@ -359,3 +359,7 @@ phase7c3_login_reuse_proof:
 # Reuses scripts/session-profile-scan.sh
   - docs/phase-7i-repeat-auth-profile-verification.md
   - docs/phase-7j-remote-manual-login-gateway-design.md
+
+# Phase 7L public HTTPS noVNC gateway design
+- path: docs/phase-7l-public-https-novnc-gateway-design.md
+  description: Design-only safety contract for future temporary public HTTPS noVNC manual login gateway.
