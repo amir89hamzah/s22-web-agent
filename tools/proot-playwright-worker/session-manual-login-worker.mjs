@@ -50,6 +50,16 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function getChromiumLaunchArgs() {
+  const defaults = ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'];
+  const extra = String(process.env.CHROMIUM_FLAGS || '')
+    .split(/\s+/)
+    .map((flag) => flag.trim())
+    .filter(Boolean);
+
+  return [...new Set([...defaults, ...extra])];
+}
+
 async function main() {
   const [profile, rawUrl] = process.argv.slice(2);
 
@@ -101,6 +111,7 @@ async function main() {
 
   const executablePath = process.env.CHROMIUM_EXECUTABLE || '/usr/bin/chromium';
   const headless = process.env.SESSION_LOGIN_HEADLESS === '1';
+  const launchArgs = getChromiumLaunchArgs();
   let browser;
   let context;
 
@@ -108,7 +119,7 @@ async function main() {
     browser = await chromium.launch({
       executablePath,
       headless,
-      args: ['--no-sandbox', '--disable-dev-shm-usage'],
+      args: launchArgs,
     });
 
     context = await browser.newContext();
@@ -120,6 +131,7 @@ async function main() {
     console.log(`url: ${targetUrl.href}`);
     console.log(`browserExecutable: ${executablePath}`);
     console.log(`headless: ${headless}`);
+    console.log(`chromiumFlagsCount: ${launchArgs.length}`);
     console.log('status: pending_manual_login');
     console.log('Open aVNC/noVNC and login manually. Then complete the job from MCP or SSH.');
     console.log('No cookie/session/token/password/storageState values will be printed.');
