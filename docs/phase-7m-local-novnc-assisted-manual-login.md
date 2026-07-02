@@ -2,9 +2,9 @@
 
 ## Status
 
-Implementation wrapper added.
+PASS — local noVNC-assisted manual login job integration completed and retested after hardening.
 
-This phase keeps the manual login flow local-only and does not start any Cloudflare or public tunnel.
+This phase kept the manual login flow local-only and did not start any Cloudflare or public tunnel.
 
 ## Purpose
 
@@ -20,14 +20,14 @@ The operator can start one local noVNC-assisted login flow, complete login manua
 
 ## Safety boundary
 
-Phase 7M must keep these services local-only:
+Phase 7M kept these services local-only:
 
 ```text
 127.0.0.1:5901  raw VNC
 127.0.0.1:6080  local noVNC gateway
 ```
 
-Phase 7M must not expose:
+Phase 7M did not expose:
 
 ```text
 3001  API server
@@ -36,7 +36,7 @@ Phase 7M must not expose:
 6080  local noVNC gateway
 ```
 
-No public Cloudflare tunnel is started by any Phase 7M wrapper.
+No public Cloudflare tunnel was started by any Phase 7M wrapper.
 
 The wrapper must never print:
 
@@ -62,7 +62,7 @@ npm run session:manual-login:novnc:complete -- <profile> [scan-url] [expected-te
 npm run session:manual-login:novnc:cancel -- <profile>
 ```
 
-These scripts call the new wrappers:
+These scripts call the wrappers:
 
 ```text
 scripts/session-manual-login-novnc-local-start.sh
@@ -77,7 +77,7 @@ Example using the local demo login server:
 
 ```bash
 npm run session:demo:start
-npm run session:manual-login:novnc:start -- novnc-local-demo http://127.0.0.1:3107/login
+SESSION_LOGIN_TIMEOUT_MS=900000 npm run session:manual-login:novnc:start -- novnc-local-demo http://127.0.0.1:3107/login
 ```
 
 The start wrapper does this:
@@ -85,11 +85,12 @@ The start wrapper does this:
 ```text
 1. Validates profile name.
 2. Validates login URL.
-3. Starts stable local VNC through tmux.
-4. Starts local noVNC on 127.0.0.1:6080.
-5. Starts the pending manual login job.
-6. Prints local browser and SSH-forward instructions.
-7. Prints no secrets.
+3. Cleans up stale previous manual-login state for the profile when safe to do so.
+4. Starts stable local VNC through tmux.
+5. Starts local noVNC on 127.0.0.1:6080.
+6. Starts the pending manual login job.
+7. Prints local browser and SSH-forward instructions.
+8. Prints no secrets.
 ```
 
 ## PC browser access
@@ -150,7 +151,7 @@ If login is not needed or something looks wrong:
 npm run session:manual-login:novnc:cancel -- novnc-local-demo
 ```
 
-The cancel wrapper cancels the pending login job and stops local noVNC by default.
+The cancel wrapper cancels the pending login job, attempts stale worker cleanup for the named profile, removes stale pid/done files, and stops local noVNC by default.
 
 ## Stop commands
 
@@ -178,46 +179,84 @@ linkedin-jobscan-novnc
 
 Once saved, the agent can reuse the named profile with `browser_scan_with_profile` or the local profile scan helper. The user does not need to log in again until the target website expires or invalidates the session.
 
-## Phase 7M test recommendation
+## Phase 7M proof run
 
-First test with the local demo server only:
+Proof target:
 
-```bash
-npm run session:demo:start
-npm run session:manual-login:novnc:start -- novnc-local-demo http://127.0.0.1:3107/login
+```text
+profile: novnc-local-demo
+login URL: http://127.0.0.1:3107/login
+secure URL: http://127.0.0.1:3107/secure
+expected text: S22 DEMO AUTH PASS
 ```
 
-After manual login in noVNC:
+Observed proof route:
 
-```bash
-SESSION_SCAN_SUPPRESS_EXCERPT=1 npm run session:manual-login:novnc:complete -- novnc-local-demo http://127.0.0.1:3107/secure "S22 DEMO AUTH PASS"
+```text
+PC browser
+  -> SSH local forward
+  -> local noVNC 127.0.0.1:6080
+  -> local VNC 127.0.0.1:5901
+  -> Debian Chromium
+  -> manual demo login
+  -> storageState saved locally
+  -> headless authenticated reuse scan
 ```
 
-Then cleanup:
+Completion output confirmed:
 
-```bash
-npm run session:demo:stop
-npm run session:vnc:stop:stable
+```text
+status: completed
+title: S22 Demo Secure Area
+finalUrl: http://127.0.0.1:3107/secure
+storageStatePath: .runtime/sessions/<profile>/storageState.json
+PASS: manual login profile saved.
 ```
 
-## Acceptance criteria
+Authenticated reuse scan confirmed:
 
-Phase 7M is considered PASS when:
+```text
+textExcerpt: (suppressed by SESSION_SCAN_SUPPRESS_EXCERPT=1)
+expectedText: found
+PASS: profile-aware headless scan completed.
+No cookie/session values were printed.
+```
 
-- local demo login can be started through the combined noVNC wrapper
-- Windows browser can control the login browser through SSH local forward
-- profile `novnc-local-demo` is saved under `.runtime/sessions/<profile>/`
-- local profile scan finds `S22 DEMO AUTH PASS`
-- `SESSION_SCAN_SUPPRESS_EXCERPT=1` suppresses page text excerpt
-- raw VNC `5901` is not publicly exposed
-- noVNC `6080` remains local-only
-- API `3001` and worker `3002` are not exposed
-- no public tunnel is started
-- no password/cookie/token/MFA/storageState value is printed
-- `.runtime/` artifacts do not appear in git status
+## Hardening applied after first rough run
+
+The first run worked, but was not smooth. The following hardening was added before the final PASS retest:
+
+- cancel wrapper now attempts profile-specific stale worker cleanup
+- start wrapper now cleans stale terminal job state before starting a new job
+- status wrapper no longer reports a false safe listener result when `ss` is unavailable in Termux/Android
+- manual login worker now launches Chromium with `--disable-setuid-sandbox` and supports additional `CHROMIUM_FLAGS`
+- `SESSION_LOGIN_TIMEOUT_MS` is passed into the Debian proot worker path
+
+## Known operator notes
+
+- Termux SSH listener may need to be restarted with `sshd -p 8022` before the Windows SSH local forward accepts new connections.
+- Chromium may print `error: expected absolute path: "--shm-helper"`; this was non-blocking in the proof runs because Chromium still opened the login page, storageState saved, and headless reuse scan passed.
+- Android/Termux may deny `ss -ltnp` / netlink access; VNC status and noVNC tmux logs are used as practical local proof evidence.
+
+## Acceptance criteria result
+
+Phase 7M result:
+
+- [x] local demo login can be started through the combined noVNC wrapper
+- [x] Windows browser can control the login browser through SSH local forward
+- [x] profile `novnc-local-demo` is saved under `.runtime/sessions/<profile>/`
+- [x] local profile scan finds `S22 DEMO AUTH PASS`
+- [x] `SESSION_SCAN_SUPPRESS_EXCERPT=1` suppresses page text excerpt
+- [x] raw VNC `5901` is not publicly exposed
+- [x] noVNC `6080` remains local-only
+- [x] API `3001` and worker `3002` are not exposed
+- [x] no public tunnel is started
+- [x] no password/cookie/token/MFA/storageState value is printed
+- [x] `.runtime/` artifacts do not appear in git status
+- [x] demo server and VNC were stopped after proof
 
 ## Phase 7M decision
 
-Phase 7M is a local orchestration phase only.
+Phase 7M is complete.
 
-Do not move to Phase 7N public protected noVNC proof until the local start/status/complete/cancel lifecycle passes cleanly.
+Do not move to Phase 7N public protected noVNC proof until the operator intentionally starts that phase and the public route is temporary, protected, timeout-bound, and human-controlled.
