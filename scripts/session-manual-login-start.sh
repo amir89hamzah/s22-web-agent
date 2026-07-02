@@ -49,6 +49,10 @@ nohup proot-distro login debian -- bash -lc '
   cd /data/data/com.termux/files/home/projects/mobile-job-radar-agent
   export DISPLAY="$LOGIN_DISPLAY"
   export CHROMIUM_EXECUTABLE="${CHROMIUM_EXECUTABLE:-/usr/bin/chromium}"
+  export CHROMIUM_FLAGS="${CHROMIUM_FLAGS:-}"
+  export SESSION_LOGIN_TIMEOUT_MS="${SESSION_LOGIN_TIMEOUT_MS:-}"
+  export SESSION_LOGIN_POLL_MS="${SESSION_LOGIN_POLL_MS:-}"
+  export SESSION_LOGIN_HEADLESS="${SESSION_LOGIN_HEADLESS:-}"
   node tools/proot-playwright-worker/session-manual-login-worker.mjs "$LOGIN_PROFILE" "$LOGIN_URL"
 ' bash "$PROFILE" "$URL" "$DISPLAY_VALUE" >> "$LOG" 2>&1 &
 
