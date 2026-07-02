@@ -18,13 +18,37 @@ check_local_listener_safety() {
   fi
 
   local listeners
-  listeners="$(ss -ltn 2>/dev/null || true)"
+  local ss_error
+  ss_error="$(mktemp)"
+
+  if ! listeners="$(ss -ltn 2>"$ss_error")"; then
+    echo "WARN: listener check unavailable in this Termux/Android context."
+    if [[ -s "$ss_error" ]]; then
+      sed 's/^/ss: /' "$ss_error"
+    fi
+    rm -f "$ss_error"
+    echo "Continuing because VNC/noVNC helpers bind localhost by design in Phase 7M."
+    return 0
+  fi
+
+  rm -f "$ss_error"
 
   if echo "$listeners" | grep -E '0\.0\.0\.0:(5901|6080)|\[::\]:(5901|6080)|\*:(5901|6080)' >/dev/null 2>&1; then
     echo "FAIL: VNC/noVNC appears to be listening on a non-local interface." >&2
     echo "Safety rule: 5901 and 6080 must remain local-only in Phase 7M." >&2
     echo "$listeners" | grep -E ':(5901|6080)' || true
     exit 2
+  fi
+}
+
+cleanup_stale_manual_login_job() {
+  local state=".runtime/manual-login-jobs/${PROFILE}.json"
+
+  if [[ -f "$state" ]] && grep -Eq '"status"[[:space:]]*:[[:space:]]*"(timeout|failed|cancelled|completed)"' "$state"; then
+    echo
+    echo "== Cleanup stale previous manual-login job for this profile =="
+    SESSION_NOVNC_STOP_AFTER_CANCEL=0 SESSION_VNC_STOP_AFTER_CANCEL=0 \
+      bash scripts/session-manual-login-novnc-local-cancel.sh "$PROFILE" || true
   fi
 }
 
@@ -69,6 +93,8 @@ echo "- Do not paste passwords, cookies, tokens, MFA codes, or storageState into
 echo
 echo "Note: starting stable VNC may restart the local Debian desktop and close old Chromium windows."
 echo
+
+cleanup_stale_manual_login_job
 
 echo "== Start stable local VNC =="
 npm run session:vnc:start:stable
