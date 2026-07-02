@@ -12,11 +12,29 @@ check_local_listener_safety() {
   fi
 
   local listeners
-  listeners="$(ss -ltn 2>/dev/null || true)"
+  local ss_error
+  ss_error="$(mktemp)"
 
   echo
   echo "== Local listener safety check =="
-  echo "$listeners" | grep -E ':(5901|6080)' || echo "No 5901/6080 listeners found."
+
+  if ! listeners="$(ss -ltn 2>"$ss_error")"; then
+    echo "WARN: listener check unavailable in this Termux/Android context."
+    if [[ -s "$ss_error" ]]; then
+      sed 's/^/ss: /' "$ss_error"
+    fi
+    rm -f "$ss_error"
+    echo "Use the VNC status and noVNC tmux log above as the Phase 7M safety evidence."
+    return 0
+  fi
+
+  rm -f "$ss_error"
+
+  if echo "$listeners" | grep -E ':(5901|6080)' >/dev/null 2>&1; then
+    echo "$listeners" | grep -E ':(5901|6080)' || true
+  else
+    echo "No 5901/6080 listeners reported by ss."
+  fi
 
   if echo "$listeners" | grep -E '0\.0\.0\.0:(5901|6080)|\[::\]:(5901|6080)|\*:(5901|6080)' >/dev/null 2>&1; then
     echo "FAIL: VNC/noVNC appears to be listening on a non-local interface." >&2
