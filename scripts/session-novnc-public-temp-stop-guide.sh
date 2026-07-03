@@ -4,16 +4,25 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 PUBLIC_HOST="${1:-s22login.aidesk.rest}"
+PROFILE="${SESSION_PUBLIC_TEMP_PROFILE:-novnc-public-demo}"
+STATE_FILE=".runtime/manual-login-jobs/${PROFILE}.json"
 
 echo "== Phase 7N Option A public-temp noVNC kill switch guide =="
 echo "public host: $PUBLIC_HOST"
+echo "profile: $PROFILE"
 echo
 echo "This helper stops local S22 services that support the temporary noVNC login path."
 echo "It does NOT edit Cloudflare Dashboard routes or Access applications."
 echo
 echo "== Stop local login/noVNC/VNC/demo services =="
 
-npm run session:manual-login:novnc:cancel -- novnc-public-demo || true
+if [ -f "$STATE_FILE" ] && grep -q '"status"[[:space:]]*:[[:space:]]*"completed"' "$STATE_FILE"; then
+  echo "Manual login state is already completed; preserving completed state instead of cancelling."
+  echo "Stale worker cleanup will be handled by VNC/proot stop."
+else
+  npm run session:manual-login:novnc:cancel -- "$PROFILE" || true
+fi
+
 npm run session:novnc:stop:local || true
 npm run session:vnc:stop:stable || true
 npm run session:demo:stop || true
