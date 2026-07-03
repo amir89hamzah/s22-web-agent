@@ -68,17 +68,18 @@ if [[ ! -f "$TOKEN_ENV_FILE" ]]; then
   exit 1
 fi
 
-# Source token from a temporary runtime file, then remove the file immediately.
-# Secret value is not printed by this script.
-# Note: cloudflared still receives the token as its process argument, matching the existing Cloudflare token run mode.
-# Do not share process listings while this connector is running.
+# Source token from a temporary runtime file, copy it to a local shell variable,
+# remove the file, then unset the environment variable before starting cloudflared.
+# This prevents cloudflared from printing CLOUDFLARE_TUNNEL_TOKEN in its startup
+# environment map.
 set +x
 # shellcheck disable=SC1090
 source "$TOKEN_ENV_FILE"
+TUNNEL_TOKEN="$CLOUDFLARE_TUNNEL_TOKEN"
+unset CLOUDFLARE_TUNNEL_TOKEN
 rm -f "$TOKEN_ENV_FILE"
-set -x
-
 set +x
+
 echo "== Phase 7N Cloudflare connector tmux runner =="
 echo "Repo: $ROOT_DIR"
 echo "Routes are controlled by Cloudflare Dashboard, not by this tmux runner."
@@ -89,8 +90,10 @@ echo
 echo "Starting cloudflared connector. Keep this tmux session running during the proof."
 echo "Stop with: npm run session:novnc:public-temp:tunnel:stop"
 echo
+echo "Secret safety: token was removed from environment before cloudflared start."
+echo
 
-cloudflared tunnel run --token "$CLOUDFLARE_TUNNEL_TOKEN"
+cloudflared tunnel run --token "$TUNNEL_TOKEN"
 EOF_RUNNER
 chmod 700 "$RUNNER"
 
