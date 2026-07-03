@@ -57,7 +57,10 @@
     "session:manual-login:novnc:cancel": "bash scripts/session-manual-login-novnc-local-cancel.sh",
     "session:novnc:public-temp:start-guide": "bash scripts/session-novnc-public-temp-start-guide.sh",
     "session:novnc:public-temp:status": "bash scripts/session-novnc-public-temp-status.sh",
-    "session:novnc:public-temp:stop-guide": "bash scripts/session-novnc-public-temp-stop-guide.sh"
+    "session:novnc:public-temp:stop-guide": "bash scripts/session-novnc-public-temp-stop-guide.sh",
+    "session:novnc:public-temp:tunnel:start": "bash scripts/session-novnc-public-temp-tunnel-start.sh",
+    "session:novnc:public-temp:tunnel:status": "bash scripts/session-novnc-public-temp-tunnel-status.sh",
+    "session:novnc:public-temp:tunnel:stop": "bash scripts/session-novnc-public-temp-tunnel-stop.sh"
   },
   "keywords": [],
   "author": "",
