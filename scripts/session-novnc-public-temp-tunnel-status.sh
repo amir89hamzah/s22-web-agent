@@ -12,8 +12,26 @@ echo
 if tmux has-session -t "$SESSION" 2>/dev/null; then
   echo "tmux: running"
   echo
-  echo "--- log tail ---"
-  tmux capture-pane -pt "$SESSION" -S -80 2>/dev/null | sed -E 's/(--token[= ]+)[^ ]+/\1<redacted>/g; s/(CLOUDFLARE_TUNNEL_TOKEN=)[^ ]+/\1<redacted>/g' || true
+  echo "--- safe log summary ---"
+  LOG_CAPTURE="$(tmux capture-pane -pt "$SESSION" -S -120 2>/dev/null || true)"
+  if echo "$LOG_CAPTURE" | grep -q "Registered tunnel connection"; then
+    echo "registered tunnel connection: yes"
+  else
+    echo "registered tunnel connection: not seen in recent log"
+  fi
+  if echo "$LOG_CAPTURE" | grep -q "Updated to new configuration"; then
+    echo "configuration update received: yes"
+  else
+    echo "configuration update received: not seen in recent log"
+  fi
+  if echo "$LOG_CAPTURE" | grep -q "Environment is healthy"; then
+    echo "cloudflared precheck: healthy"
+  else
+    echo "cloudflared precheck: not seen in recent log"
+  fi
+  if echo "$LOG_CAPTURE" | grep -qi "error\|fail"; then
+    echo "recent error/fail lines detected; attach tmux locally to inspect. Do not share raw tunnel logs."
+  fi
 else
   echo "tmux: not running"
 fi
@@ -21,10 +39,10 @@ fi
 echo
 echo "== cloudflared process check =="
 if pgrep -af cloudflared >/dev/null 2>&1; then
-  pgrep -af cloudflared | sed -E 's/(--token[= ]+)[^ ]+/\1<redacted>/g; s/(CLOUDFLARE_TUNNEL_TOKEN=)[^ ]+/\1<redacted>/g'
+  echo "cloudflared process: running"
 else
-  echo "no cloudflared process found"
+  echo "cloudflared process: not found"
 fi
 
 echo
-echo "Safety reminder: process check redacts obvious token arguments, but do not share raw process listings while a tunnel is running."
+echo "Safety reminder: this status helper intentionally does not print raw cloudflared logs because tunnel logs may include sensitive token material on some versions."
