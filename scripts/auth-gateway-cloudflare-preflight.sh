@@ -6,9 +6,10 @@ cd "$ROOT_DIR"
 
 PUBLIC_HOST="${1:-s22login.aidesk.rest}"
 MCP_HOST="${MCP_PUBLIC_HOST:-s22agent.aidesk.rest}"
+TUNNEL_MODE="${AUTH_GATEWAY_TUNNEL_MODE:-shared}"
 RUNTIME_DIR="$ROOT_DIR/.runtime"
 TOKEN_ENV_FILE="$RUNTIME_DIR/cloudflared-public-temp.env"
-TUNNEL_SESSION="${SESSION_PUBLIC_TUNNEL_TMUX:-s22-cloudflared-public-temp}"
+TEMP_TUNNEL_SESSION="${SESSION_PUBLIC_TUNNEL_TMUX:-s22-cloudflared-public-temp}"
 HEADER_FILE="$(mktemp)"
 trap 'rm -f "$HEADER_FILE"' EXIT
 
@@ -19,6 +20,7 @@ unsafe=0
 action_required=0
 access_state="not_checked"
 http_code="000"
+shared_connector_running="false"
 
 if [[ ! "$PUBLIC_HOST" =~ ^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?$ ]]; then
   echo "FAIL: public hostname is invalid." >&2
@@ -30,12 +32,18 @@ if [[ "$PUBLIC_HOST" == "$MCP_HOST" ]]; then
   exit "$EXIT_UNSAFE"
 fi
 
+if [[ "$TUNNEL_MODE" != "shared" && "$TUNNEL_MODE" != "dedicated" ]]; then
+  echo "FAIL: AUTH_GATEWAY_TUNNEL_MODE must be shared or dedicated." >&2
+  exit "$EXIT_UNSAFE"
+fi
+
 mkdir -p "$RUNTIME_DIR"
 chmod 700 "$RUNTIME_DIR" 2>/dev/null || true
 
 echo "== Phase 7Q-C0 Cloudflare security preflight =="
 echo "login hostname: $PUBLIC_HOST"
 echo "MCP hostname kept separate: $MCP_HOST"
+echo "tunnel mode: $TUNNEL_MODE"
 echo
 echo "This command does not start VNC, noVNC, cloudflared, a tunnel, or a public route."
 echo
@@ -51,20 +59,31 @@ for command_name in curl tmux cloudflared; do
 done
 
 echo
-echo "== 2. Tunnel must be stopped during preflight =="
-if tmux has-session -t "$TUNNEL_SESSION" 2>/dev/null; then
-  echo "FAIL: public-temp tunnel tmux session is running: $TUNNEL_SESSION"
+echo "== 2. Tunnel architecture check =="
+if tmux has-session -t "$TEMP_TUNNEL_SESSION" 2>/dev/null; then
+  echo "FAIL: legacy public-temp tunnel tmux session is running: $TEMP_TUNNEL_SESSION"
+  echo "The current architecture uses the existing shared tunnel; do not start a second connector."
   unsafe=1
 else
-  echo "PASS: public-temp tunnel tmux session is not running"
+  echo "PASS: no legacy public-temp tunnel tmux session is running"
 fi
 
-if pgrep -af cloudflared >/dev/null 2>&1; then
-  echo "FAIL: a cloudflared process is currently running"
-  echo "Check that this is not Route A or another intentional tunnel before stopping it."
-  unsafe=1
+if pgrep -f '[c]loudflared' >/dev/null 2>&1; then
+  shared_connector_running="true"
+  if [[ "$TUNNEL_MODE" == "shared" ]]; then
+    echo "PASS: a cloudflared connector is running and is allowed in shared mode"
+    echo "Safety: this helper does not display the cloudflared command line or token."
+  else
+    echo "ACTION REQUIRED: cloudflared is running while dedicated-mode preflight expects the connector stopped"
+    action_required=1
+  fi
 else
-  echo "PASS: no cloudflared process is running"
+  if [[ "$TUNNEL_MODE" == "shared" ]]; then
+    echo "INFO: no cloudflared connector is currently running"
+    echo "The Access front door can still be checked without starting the connector."
+  else
+    echo "PASS: no cloudflared connector is running"
+  fi
 fi
 
 echo
@@ -79,20 +98,28 @@ fi
 
 if [[ -e "$TOKEN_ENV_FILE" ]]; then
   echo "FAIL: temporary token file still exists under .runtime"
-  echo "Stop the temporary tunnel helper before removing the file locally. Do not display its contents."
+  echo "Do not display its contents. Remove it only after confirming no helper depends on it."
   unsafe=1
 else
   echo "PASS: no temporary tunnel token file remains"
 fi
 
 echo
-echo "== 4. Local noVNC should remain off =="
+echo "== 4. Local login gateway should remain off while idle =="
 if curl -fsS --connect-timeout 2 --max-time 3 http://127.0.0.1:6080/ >/dev/null 2>&1; then
   echo "ACTION REQUIRED: local noVNC is reachable on 127.0.0.1:6080"
-  echo "Stop it before completing the Cloudflare-only preflight."
+  echo "Stop noVNC before completing the idle-state security preflight."
   action_required=1
 else
   echo "PASS: local noVNC is not reachable"
+fi
+
+if pgrep -f '[X]tigervnc|[X]vnc|[v]ncserver' >/dev/null 2>&1; then
+  echo "ACTION REQUIRED: a VNC process appears to be running"
+  echo "Stop the login display before completing the idle-state security preflight."
+  action_required=1
+else
+  echo "PASS: no VNC process detected"
 fi
 
 echo
@@ -131,11 +158,14 @@ fi
 echo
 echo "== Result =="
 echo "publicHost: $PUBLIC_HOST"
+echo "mcpHost: $MCP_HOST"
+echo "tunnelMode: $TUNNEL_MODE"
+echo "sharedConnectorRunning: $shared_connector_running"
 echo "accessState: $access_state"
 echo "httpStatus: $http_code"
 echo "publicGatewayStarted: false"
 echo "tokenValuePrinted: false"
-echo "next: rotate or recreate the historical tunnel token in Cloudflare, restrict Access to your exact email, keep the connector stopped, then rerun this preflight."
+echo "next: keep the shared MCP tunnel architecture, keep noVNC/VNC off while idle, and rotate the historical shared tunnel token in a controlled maintenance step before the public login proof."
 
 if [[ "$unsafe" -ne 0 ]]; then
   echo "PREFLIGHT RESULT: unsafe_or_incomplete"
@@ -147,5 +177,5 @@ if [[ "$action_required" -ne 0 ]]; then
   exit "$EXIT_ACTION_REQUIRED"
 fi
 
-echo "PREFLIGHT RESULT: local_safe_and_access_front_door_detected"
+echo "PREFLIGHT RESULT: shared_tunnel_local_safe_and_access_front_door_detected"
 echo "PASS: Phase 7Q-C0 automated checks completed without starting any public service."
