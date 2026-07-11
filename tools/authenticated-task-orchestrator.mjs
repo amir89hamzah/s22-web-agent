@@ -120,6 +120,7 @@ function stateFromProbeCode(code) {
 }
 
 function publicView(task) {
+  const gatewayActive = Boolean(task.publicGatewayStarted);
   return {
     ok: task.state === 'ready',
     job: task.job,
@@ -128,14 +129,16 @@ function publicView(task) {
     targetUrl: safeUrl(task.targetUrl),
     loginUrl: task.loginUrl ? safeUrl(task.loginUrl) : null,
     approvalRequired: task.approvalRequired,
-    publicGatewayStarted: false,
-    resumable: ['login_required', 'ready'].includes(task.state),
+    approvalRecorded: Boolean(task.approvalRecorded),
+    publicGatewayStarted: gatewayActive,
+    resumable: !gatewayActive && ['login_required', 'ready'].includes(task.state),
     createdAt: task.createdAt,
     updatedAt: task.updatedAt,
     probeSummary: task.probeSummary,
     next: task.next,
-    safety:
-      'No password, cookie, token, MFA code, storageState JSON, or full user prompt is stored or printed. Public noVNC was not started.',
+    safety: gatewayActive
+      ? 'A user-approved login gateway is active. Do not run the generic resume or cancel action; use the dedicated login-gateway complete or cancel action. No secret value is printed.'
+      : 'No password, cookie, token, MFA code, storageState JSON, or full user prompt is stored or printed. Public noVNC is started only through the separate approval-gated helper.',
   };
 }
 
@@ -152,12 +155,13 @@ async function evaluate(task) {
     stderr: probe.stderr,
   };
   task.approvalRequired = state === 'login_required';
+  task.publicGatewayStarted = false;
 
   if (state === 'ready') {
     task.next = 'The authenticated profile is valid. The caller may continue the requested browser task using this profile.';
   } else if (state === 'login_required') {
     task.next =
-      'Ask the user for explicit approval before starting any temporary login gateway. After human login and profile capture, run resume for this job.';
+      'Ask the user for explicit approval before starting the temporary protected login gateway. After human login and profile capture, run the dedicated gateway complete action.';
   } else if (state === 'domain_mismatch') {
     task.next = 'Use a profile captured for the target domain. Do not start a login gateway for the wrong profile/domain pair.';
   } else {
@@ -183,7 +187,7 @@ async function prepare(args) {
 
   const now = new Date().toISOString();
   const task = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     job,
     profile,
     targetUrl: targetUrl.href,
@@ -191,6 +195,7 @@ async function prepare(args) {
     loginUrl: loginUrl?.href || '',
     state: 'checking_profile',
     approvalRequired: false,
+    approvalRecorded: false,
     publicGatewayStarted: false,
     createdAt: now,
     updatedAt: now,
@@ -228,6 +233,12 @@ async function resume(args) {
     process.exitCode = EXIT.CANCELLED;
     return;
   }
+  if (task.publicGatewayStarted || task.state === 'waiting_for_user_login') {
+    task.next = 'The login gateway is active. Use the dedicated gateway complete action after the user finishes login, or the dedicated gateway cancel action.';
+    console.log(JSON.stringify(publicView(task), null, 2));
+    process.exitCode = EXIT.RUNTIME_ERROR;
+    return;
+  }
   const evaluated = await evaluate(task);
   console.log(JSON.stringify(publicView(evaluated), null, 2));
   process.exitCode = evaluated.state === 'ready' ? EXIT.OK : evaluated.state === 'login_required' ? EXIT.LOGIN_REQUIRED : evaluated.state === 'domain_mismatch' ? EXIT.DOMAIN_MISMATCH : EXIT.RUNTIME_ERROR;
@@ -241,6 +252,9 @@ async function cancel(args) {
     return;
   }
   const task = await readTask(job);
+  if (task.publicGatewayStarted || task.state === 'waiting_for_user_login') {
+    throw new Error('A login gateway is active. Use auth:login-gateway:cancel so VNC and noVNC are stopped safely.');
+  }
   task.state = 'cancelled';
   task.approvalRequired = false;
   task.publicGatewayStarted = false;
@@ -261,8 +275,8 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(`state: runtime_error`);
+  console.error('state: runtime_error');
   console.error(`message: ${sanitizeOutput(error?.message || error)}`);
-  console.error('Public noVNC was not started.');
+  console.error('Public noVNC was not started automatically.');
   process.exitCode = EXIT.RUNTIME_ERROR;
 });
