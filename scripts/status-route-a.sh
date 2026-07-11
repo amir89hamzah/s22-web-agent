@@ -34,8 +34,11 @@ npm run mcp:http:status || true
 echo
 
 echo "cloudflared process:"
-if pgrep -af cloudflared >/dev/null 2>&1; then
-  pgrep -af cloudflared
+if pgrep -f '[c]loudflared' >/dev/null 2>&1; then
+  count="$(pgrep -f '[c]loudflared' | wc -l | tr -d ' ')"
+  echo "cloudflared is running"
+  echo "process count: $count"
+  echo "command line: suppressed to avoid exposing tunnel token material"
 else
   echo "cloudflared is not running"
 fi
