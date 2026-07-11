@@ -1,127 +1,319 @@
 # LLM Repo Index for S22 Web Agent
 #
 # Purpose:
-#   Give an AI assistant a compact, safe navigation map for this repo.
-#   This file is not runtime code and should not contain secrets.
+#   Provide a compact, safe navigation map for AI-assisted repo work.
+#   This file is documentation only and must never contain secrets.
 #
 # Update rule:
-#   Update this file when architecture, runtime modes, ports, or major docs change.
-#   Do not update it for every small implementation detail.
+#   Update when architecture, runtime modes, ports, security boundaries,
+#   major proof status, or the recommended next phase changes.
 
 project:
   name: s22-web-agent
   repository: amir89hamzah/s22-web-agent
   local_path: ~/projects/mobile-job-radar-agent
-  device: Samsung S22 running Termux
-  purpose: Mobile-first MCP and web automation portfolio project
-  current_phase: Phase 7 planning
-  next_focus: Cookie/session login workflow design
+  device: Samsung Galaxy S22
+  host_environment: Termux from Google Play
+  purpose: Controlled mobile-hosted MCP and browser automation execution node
+  project_type: learning_and_portfolio_proof
+  current_phase: Phase 7P-0 documentation reconciliation complete
+  next_focus: Phase 7P operator-quality profile lifecycle helpers
+
+latest_checkpoint:
+  phase: Phase 7O-E
+  status: pass
+  label: long-gap session continuity
+  profile: github-manual-local
+  target: https://github.com/settings/profile
+  expected_text: Public profile
+  result:
+    - authenticated GitHub dummy session survived full S22 power-off and restart
+    - approximately one week offline
+    - runtime shutdown
+    - SSH reconnect
+    - repeated headless reuse
+    - VNC and noVNC were not started
+    - login was not repeated
+    - authenticated text excerpt remained suppressed
+    - no cookie or session values were printed
+  proof_doc: docs/phase-7o-e-long-gap-session-continuity.md
 
 high_level_status:
+  local_cli_api_scanner: pass
+  sqlite_reporting: pass
+  mcp_stdio: pass
+  mcp_streamable_http: pass
   route_a_cloudflare_public_mcp: pass
-  openai_secure_mcp_tunnel_private_chatgpt_app: pass
+  openai_secure_mcp_tunnel: pass
   debian_proot_playwright_worker: pass
+  manual_login_vnc: pass
+  stable_tmux_vnc: pass
+  local_novnc: pass
+  temporary_cloudflare_access_novnc: pass
+  playwright_storage_state_capture: pass
+  profile_domain_allowlist: pass
+  mcp_browser_scan_with_profile: pass
+  real_github_dummy_authenticated_scan: pass
+  repeated_session_reuse: pass
+  long_gap_session_continuity: pass
   oauth: not_started_intentionally
-  cookie_session_workflow: planned
+  cookie_json_import: deferred
+  phase_7p_profile_lifecycle: next
 
 core_architecture:
   termux:
     api_server:
       port: 3001
+      bind_intent: local_only
       public_exposure: never
       entrypoint: src/server.js
-      scripts:
+      commands:
         start: npm run api:start
         status: npm run api:status
         stop: npm run api:stop
     mcp_http_server:
       port: 3003
-      public_exposure:
-        route_a: via Cloudflare Named Tunnel only
-        openai_tunnel: local-only target for tunnel-client
       entrypoint: src/mcp-http-server.mjs
-      scripts:
+      commands:
         start: npm run mcp:http:start
         status: npm run mcp:http:status
         stop: npm run mcp:http:stop
+      public_exposure:
+        route_a: Cloudflare Named Tunnel when intentionally started
+        openai_secure_tunnel: local target for Debian tunnel-client
     mcp_stdio_server:
       entrypoint: src/mcp-server.mjs
-      script: npm run mcp
+      command: npm run mcp
+    sqlite:
+      storage: local_runtime_data
+      git_tracked: false
   debian_proot:
     playwright_worker:
       port: 3002
       public_exposure: never
-      path: tools/proot-playwright-worker/server.mjs
+      entrypoint: tools/proot-playwright-worker/server.mjs
+      browser: Chromium
     openai_tunnel_client:
-      path: /data/data/com.termux/files/home/tools/openai-tunnel/tunnel-client
-      profile: s22-web-agent-local
       run_from: Debian proot
+      profile: s22-web-agent-local
       note: Direct Termux execution previously failed with unexpected e_type: 2.
+  session_gateway:
+    raw_vnc:
+      port: 5901
+      bind: 127.0.0.1
+      public_exposure: never
+    novnc:
+      port: 6080
+      bind_default: 127.0.0.1
+      public_exposure: temporary_protected_only_when_intentionally_started
+    demo_login_server:
+      port: 3107
+      public_exposure: never
+    profile_storage:
+      root: .runtime/sessions/<profile>/
+      files:
+        - storageState.json
+        - metadata.json
+      git_tracked: false
+
+exposure_policy:
+  never_public:
+    - port 3001 API
+    - port 3002 Playwright worker
+    - port 5901 raw VNC
+    - port 3107 demo login server
+  conditional:
+    - port 3003 MCP through intentional protected route
+    - port 6080 noVNC only through temporary protected human-controlled route
+  public_hostnames:
+    mcp: s22agent.aidesk.rest
+    temporary_login: s22login.aidesk.rest
+  route_separation:
+    - MCP and human-login routes are separate concerns
+    - public noVNC must never replace or modify the MCP route
 
 runtime_modes:
   local_cli_api:
-    use_when: Local scanning and API development
+    use_when: local scanning and API development
     commands:
-      scan_cli: node src/index.js scan example.com
-      start_api: npm run api:start
-      api_health: curl http://127.0.0.1:3001/health
-    notes:
-      - No tunnel required.
-      - API stays local unless user intentionally tests LAN access.
+      scan: node src/index.js scan example.com
+      api_start: npm run api:start
+      api_status: npm run api:status
+      api_stop: npm run api:stop
+    tunnel_required: false
+
+  mcp_local:
+    use_when: local MCP client or Inspector testing
+    commands:
+      stdio: npm run mcp
+      http_start: npm run mcp:http:start
+      http_status: npm run mcp:http:status
+      http_stop: npm run mcp:http:stop
 
   route_a_cloudflare:
-    use_when: Public demo of MCP HTTP through Cloudflare Named Tunnel
-    public_endpoint: https://s22agent.aidesk.rest/mcp
-    tunnel_name: s22-web-agent-mcp
+    use_when: intentional public MCP demo
+    endpoint: https://s22agent.aidesk.rest/mcp
     commands:
       start: npm run route:a:start
       status: npm run route:a:status
       stop: npm run route:a:stop
-    security:
-      expose_only:
-        - 3003
-      never_expose:
-        - 3001
-        - 3002
-      secrets:
-        - MCP_HTTP_TOKEN
-        - CLOUDFLARE_TUNNEL_TOKEN
-    primary_docs:
-      - docs/route-a-operator-runbook.md
-      - docs/route-a-live-test-results.md
-      - docs/route-a-named-tunnel.md
+    constraints:
+      - expose only MCP port 3003
+      - keep API 3001 private
+      - keep worker 3002 private
+      - use bearer authentication
 
   openai_secure_mcp_tunnel:
-    use_when: Private ChatGPT Custom App integration without public Cloudflare endpoint
-    flow: ChatGPT Custom App -> OpenAI Secure MCP Tunnel -> Debian tunnel-client -> Termux MCP HTTP 3003 -> API 3001
+    use_when: private ChatGPT Custom App integration
+    flow: ChatGPT Custom App -> OpenAI tunnel -> Debian tunnel-client -> Termux MCP 3003 -> API 3001
     commands:
       termux_start: npm run openai:tunnel:start
       debian_client: npm run openai:tunnel:client:debian
       status: npm run openai:tunnel:status
       stop: npm run openai:tunnel:stop
-    security:
-      cloudflare: do_not_start
-      mcp_http_auth: disabled locally for the tunnel path
-      runtime_key: prompted interactively
-      never_commit:
-        - CONTROL_PLANE_API_KEY
-    known_warning:
-      oauth_metadata_404: expected for current non-OAuth mode
-    primary_docs:
-      - docs/openai-secure-mcp-tunnel-test.md
-      - docs/openai-secure-mcp-tunnel-operator-runbook.md
-      - docs/openai-secure-mcp-tunnel-helper-test-results.md
+    constraints:
+      - do not start Route A in this mode
+      - runtime key is prompted locally
+      - runtime key is never committed
 
-  debian_playwright_worker:
-    use_when: Browser-rendered page inspection
+  local_manual_login:
+    use_when: user must refresh or create a website session
+    flow: local noVNC -> local VNC -> visible Debian Chromium -> human login -> local storageState
     commands:
-      status: npm run worker:status
-      notes: npm run worker:notes
-    primary_docs:
-      - docs/proot-playwright.md
-    caution:
-      - Keep worker local on port 3002.
-      - Avoid heavy background browser automation on S22 unless needed.
+      start: SESSION_LOGIN_TIMEOUT_MS=1200000 npm run session:manual-login:novnc:start -- <profile> <login-url>
+      status: npm run session:manual-login:novnc:status -- <profile>
+      complete: SESSION_SCAN_SUPPRESS_EXCERPT=1 npm run session:manual-login:novnc:complete -- <profile> <authenticated-url> "<expected-text>"
+      cancel: npm run session:manual-login:novnc:cancel -- <profile>
+    automatic_public_route: forbidden
+
+  temporary_public_novnc:
+    use_when: explicitly approved remote human login proof only
+    protection: Cloudflare Access plus VNC/noVNC authentication plus target-site login
+    commands:
+      guide_start: npm run session:novnc:public-temp:start-guide -- <public-host>
+      guide_status: npm run session:novnc:public-temp:status -- <public-host>
+      guide_stop: npm run session:novnc:public-temp:stop-guide -- <public-host>
+      tunnel_start: npm run session:novnc:public-temp:tunnel:start
+      tunnel_status: npm run session:novnc:public-temp:tunnel:status
+      tunnel_stop: npm run session:novnc:public-temp:tunnel:stop
+    constraints:
+      - temporary
+      - intentionally started
+      - human-controlled
+      - never auto-started by profile ensure logic
+      - token rotation required before future public testing
+
+session_profile_current_commands:
+  scan:
+    command: SESSION_SCAN_SUPPRESS_EXCERPT=1 npm run session:profile:scan -- <profile> <url> "<expected-text>"
+    implementation:
+      wrapper: scripts/session-profile-scan.sh
+      worker: tools/proot-playwright-worker/session-profile-scan.mjs
+    behavior:
+      - validates safe profile name
+      - resolves storageState internally
+      - reads metadata domain allowlist
+      - rejects domain mismatch
+      - launches headless Chromium in Debian proot
+      - can verify expected text
+      - suppresses authenticated excerpt when environment flag is set
+      - never prints cookie or storageState values
+
+phase_7p_plan:
+  goal: Distinguish local profile presence from live remote website validity and provide safe reuse-first operator guidance.
+  commands:
+    status:
+      npm_name: session:profile:status
+      browser_launch: false
+      purpose: inspect profile files and metadata locally
+      expected_state_when_artifacts_exist: present_unverified
+    probe:
+      npm_name: session:profile:probe
+      browser_launch: true
+      runtime: Debian proot
+      purpose: verify expected authenticated text using saved profile
+      success_state: valid
+      missing_marker_state: expired_or_logged_out
+    ensure:
+      npm_name: session:profile:ensure
+      purpose: combine status and probe, then print safe refresh guidance
+      success_condition: valid
+      auto_start_vnc: false
+      auto_start_novnc: false
+      auto_start_public_novnc: forbidden
+      automatic_credentials: forbidden
+  required_states:
+    - missing
+    - present_unverified
+    - valid
+    - expired_or_logged_out
+    - domain_mismatch
+    - runtime_error
+  acceptance_examples:
+    - unknown profile -> missing
+    - existing artifacts without live probe -> present_unverified
+    - correct domain and authenticated marker -> valid
+    - wrong target host -> domain_mismatch
+    - page loads without authenticated marker -> expired_or_logged_out
+    - browser, network, JSON, or runtime failure -> runtime_error
+
+mcp_tools:
+  scanner:
+    - job_radar_health
+    - job_radar_scan
+    - job_radar_list_pages
+    - job_radar_get_page
+    - job_radar_get_report
+  browser:
+    - browser_inspect_url
+    - browser_scan_url
+    - browser_scan_with_profile
+  manual_login:
+    - browser_start_manual_login
+    - browser_manual_login_status
+    - browser_complete_manual_login
+    - browser_cancel_manual_login
+  profile_scan_input_boundary:
+    accepted:
+      - named profile
+      - target URL
+      - optional expected text
+    forbidden:
+      - password
+      - cookie
+      - token
+      - MFA code
+      - arbitrary storageState path
+      - storageState JSON
+
+security_rules:
+  - Never request or print passwords.
+  - Never request or print cookies.
+  - Never request or print session tokens.
+  - Never request or print MFA codes.
+  - Never print or paste storageState JSON.
+  - Keep .runtime session files out of git.
+  - Keep API port 3001 local-only.
+  - Keep Playwright worker port 3002 local-only.
+  - Keep raw VNC port 5901 local-only.
+  - Keep noVNC local-only by default.
+  - Public noVNC must be temporary, protected, intentionally started, and human-controlled.
+  - Profile fallback logic must never auto-start public noVNC.
+  - Keep MCP_HTTP_TOKEN out of git.
+  - Keep CLOUDFLARE_TUNNEL_TOKEN out of git.
+  - Keep CONTROL_PLANE_API_KEY out of git.
+  - Rotate the Cloudflare tunnel token before future public testing.
+  - Do not upgrade npm major version during Phase 7P only because an update notice appears.
+  - Do not propose Termux F-Droid migration by default.
+
+known_issues:
+  - Android may kill Termux under heavy runtime load.
+  - tmux protects against SSH disconnect but not Android terminating Termux.
+  - AnyDesk plus SSH plus VNC plus noVNC plus Chromium may cause disconnects.
+  - Profile file existence does not prove a remote website session is valid.
+  - Remote websites can expire, revoke, or challenge sessions.
+  - Termux or Android may restrict listener inspection through ss or netlink.
+  - An early raw cloudflared log exposed a tunnel token before helper hardening.
 
 important_files:
   start_here:
@@ -134,42 +326,37 @@ important_files:
     - src/scanner.js
     - src/db.js
     - src/report.js
-    - src/classifier.js
     - src/mcp-core.mjs
     - src/mcp-server.mjs
     - src/mcp-http-server.mjs
-  route_a_helpers:
-    - scripts/start-route-a.sh
-    - scripts/status-route-a.sh
-    - scripts/stop-route-a.sh
-  openai_tunnel_helpers:
-    - scripts/start-openai-tunnel-mode.sh
-    - scripts/status-openai-tunnel-mode.sh
-    - scripts/stop-openai-tunnel-mode.sh
-    - scripts/run-openai-tunnel-client-debian.sh
-  api_helpers:
-    - scripts/start-api.sh
-    - scripts/status-api.sh
-    - scripts/stop-api.sh
-  mcp_http_helpers:
-    - scripts/start-mcp-http.sh
-    - scripts/status-mcp-http.sh
-    - scripts/stop-mcp-http.sh
-  worker:
-    - tools/proot-playwright-worker/server.mjs
-    - tools/proot-playwright-worker/README.md
-
-security_rules:
-  - Never expose API port 3001 publicly.
-  - Never expose Playwright worker port 3002 publicly.
-  - In Route A, expose only MCP HTTP port 3003 through Cloudflare.
-  - In OpenAI Secure MCP Tunnel mode, do not start Route A.
-  - Never commit MCP_HTTP_TOKEN.
-  - Never commit CLOUDFLARE_TUNNEL_TOKEN.
-  - Never commit CONTROL_PLANE_API_KEY.
-  - Treat cookie/session files as secrets.
-  - Do not paste passwords, cookies, or runtime keys into public docs or chat.
-  - Keep reports, database files, logs, and .runtime files out of git.
+  session_workers:
+    - tools/proot-playwright-worker/session-capture.mjs
+    - tools/proot-playwright-worker/session-manual-login-worker.mjs
+    - tools/proot-playwright-worker/session-profile-scan.mjs
+  session_wrappers:
+    - scripts/session-profile-scan.sh
+    - scripts/session-manual-login-start.sh
+    - scripts/session-manual-login-status.sh
+    - scripts/session-manual-login-complete.sh
+    - scripts/session-manual-login-cancel.sh
+    - scripts/session-manual-login-novnc-local-start.sh
+    - scripts/session-manual-login-novnc-local-status.sh
+    - scripts/session-manual-login-novnc-local-complete.sh
+    - scripts/session-manual-login-novnc-local-cancel.sh
+  vnc_novnc_helpers:
+    - scripts/session-vnc-start.sh
+    - scripts/session-vnc-start-stable.sh
+    - scripts/session-vnc-stop-stable.sh
+    - tools/proot-playwright-worker/session-novnc-start-local.sh
+    - tools/proot-playwright-worker/session-novnc-status-local.sh
+    - tools/proot-playwright-worker/session-novnc-stop-local.sh
+  public_temp_helpers:
+    - scripts/session-novnc-public-temp-start-guide.sh
+    - scripts/session-novnc-public-temp-status.sh
+    - scripts/session-novnc-public-temp-stop-guide.sh
+    - scripts/session-novnc-public-temp-tunnel-start.sh
+    - scripts/session-novnc-public-temp-tunnel-status.sh
+    - scripts/session-novnc-public-temp-tunnel-stop.sh
 
 git_ignored_runtime_artifacts:
   - .env
@@ -182,184 +369,47 @@ docs_map:
   overview:
     - README.md
     - TODO.md
+    - docs/why-custom-s22-web-agent.md
   route_a:
     - docs/route-a-operator-runbook.md
     - docs/route-a-live-test-results.md
     - docs/route-a-named-tunnel.md
-    - docs/run-public-tunnel-demo.md
-    - docs/tunnel-architecture.md
   openai_secure_mcp_tunnel:
     - docs/openai-secure-mcp-tunnel-test.md
     - docs/openai-secure-mcp-tunnel-operator-runbook.md
     - docs/openai-secure-mcp-tunnel-helper-test-results.md
-  mcp:
-    - docs/mcp-http-auth.md
-  playwright:
-    - docs/proot-playwright.md
-  portfolio:
-    - docs/demo-flow.md
-    - docs/portfolio-polish.md
-    - samples/example-scan-output.md
-
-next_phase:
-  phase: Phase 7
-  recommended_first_step: Cookie/session login workflow design document
-  reason: More useful than OAuth for authenticated target websites because OAuth protects access to the S22 MCP tools, while cookies/sessions allow Playwright or browser workflows to access target sites after user-controlled login.
-  avoid_now:
-    - OAuth implementation unless production-style app authentication is required
-    - Heavy scanner fallback logic
-    - Background scheduling
-    - Automatic credential entry
-    - Storing credentials in scripts or repo
+  session_gateway:
+    - docs/session-gateway-design.md
+    - docs/session-gateway-vnc-smoke-test-results.md
+    - docs/session-gateway-capture-proof.md
+    - docs/session-gateway-login-reuse-proof.md
+    - docs/session-gateway-profile-scan.md
+    - docs/phase-7g-pre-login-cleanup.md
+    - docs/phase-7h-real-login-trial-result.md
+    - docs/phase-7i-repeat-auth-profile-verification.md
+    - docs/phase-7j-remote-manual-login-gateway-design.md
+    - docs/phase-7l-public-https-novnc-gateway-design.md
+    - docs/phase-7m-local-novnc-assisted-manual-login.md
+    - docs/phase-7n-temporary-cloudflare-access-novnc-proof.md
+    - docs/phase-7o-agent-continuity-proof.md
+    - docs/phase-7o-e-long-gap-session-continuity.md
 
 llm_guidance:
-  if_user_asks_to_run_openai_tunnel:
-    - Use npm run openai:tunnel:start in Termux.
-    - Use npm run openai:tunnel:client:debian inside Debian proot.
-    - Do not use route:a:start for OpenAI tunnel mode.
-    - Remind user to paste the real OpenAI runtime API key only into the hidden prompt.
-  if_user_asks_to_run_route_a:
-    - Use npm run route:a:start.
-    - Confirm only port 3003 is exposed.
-    - Do not expose 3001 or 3002.
-  if_user_asks_about_login_required_sites:
-    - Prefer Phase 7 cookie/session workflow discussion.
-    - Do not ask user to paste passwords or cookies into chat.
-  if_user_asks_about_oauth:
-    - Explain OAuth as access control for the MCP tools.
-    - Do not confuse OAuth with login to target websites.
-
-phase7_user_controlled_session_gateway:
-  status: design_first
-  phase_name: User-Controlled Session Gateway
-  primary_doc: docs/session-gateway-design.md
-  roadmap: TODO.md
-  runtime_secret_boundary:
-    - no passwords in ChatGPT
-    - no cookies in ChatGPT
-    - no session tokens in ChatGPT
-    - no storageState JSON in ChatGPT
-    - no cookie/session/storageState files in git
-  options:
-    cookie_json_import:
-      label: Option A
-      status: deferred_later
-      inbox: Android Download folder
-      local_destination: .runtime/sessions/<profile>/
-      notes:
-        - lightweight proof only
-        - user-agent mismatch risk
-        - localStorage/sessionStorage may be missing
-        - Android browser extension support uncertain
-    playwright_manual_login_vnc:
-      label: Option B
-      status: preferred_next_practical_path
-      default_access: local VNC on S22
-      output: .runtime/sessions/<profile>/storageState.json
-      notes:
-        - Debian proot runs temporary visible Chromium/Playwright
-        - user logs in manually
-        - GUI/VNC closes after capture
-        - future scans run headless using storageState
-        - noVNC/Cloudflare temporary link optional later only with strong access protection
-  security_rules:
-    - named session profile only
-    - no arbitrary file path from MCP prompt
-    - domain allowlist per profile
-    - do not expose raw VNC publicly
-    - stop VNC/tunnel after capture
-    - expose only MCP HTTP 3003 in public tunnel modes
-    - never expose API 3001 or Playwright worker 3002
-
-phase7c1_vnc_baseline:
-  status: pass
-  result_doc: docs/session-gateway-vnc-smoke-test-results.md
-  helper_scripts:
-    start: scripts/session-vnc-start.sh
-    status: scripts/session-vnc-status.sh
-    stop: scripts/session-vnc-stop.sh
-  npm_scripts:
-    - session:vnc:start
-    - session:vnc:status
-    - session:vnc:stop
-  access_mode: local_only
-  vnc:
-    display: ":1"
-    port: 5901
-    bind: 127.0.0.1
-    client: AVNC on S22
-  verified:
-    - TigerVNC local-only server
-    - Openbox desktop
-    - xterm visible
-    - Chromium visible with example.com
-  safety:
-    - do not expose raw VNC publicly
-    - stop VNC after capture or testing
-    - no passwords/cookies/tokens/storageState values in ChatGPT
-    - no session artifacts in git
-
-phase7c2_session_capture_proof:
-  status: dummy_proof_pass
-  proof_doc: docs/session-gateway-capture-proof.md
-  helper_scripts:
-    start: scripts/session-capture-start.sh
-    status: scripts/session-capture-status.sh
-    engine: tools/proot-playwright-worker/session-capture.mjs
-  npm_scripts:
-    - session:capture:example
-    - session:capture:start
-    - session:capture:status
-  first_profile: example-proof
-  first_url: https://example.com/
-  output:
-    storage_state: .runtime/sessions/<profile>/storageState.json
-    metadata: .runtime/sessions/<profile>/metadata.json
-  safety:
-    - first proof uses example.com only
-    - real website login later after dummy proof passes
-    - no passwords/cookies/tokens/storageState values in ChatGPT
-    - no arbitrary file paths from MCP prompt
-    - safe profile names only
-    - domain allowlist check
-    - local VNC only
-    - stop VNC after capture
-
-phase7c3_login_reuse_proof:
-  status: pass
-  proof_doc: docs/session-gateway-login-reuse-proof.md
-  profile: local-login-demo
-  demo_server:
-    url: http://127.0.0.1:3107
-    login_path: /login
-    secure_path: /secure
-  proof_result:
-    expected_text: S22 DEMO AUTH PASS
-    headless_reuse: pass
-  safety:
-    - local demo credential only
-    - no real account password used
-    - no cookie/session/storageState values in ChatGPT
-    - session artifacts remain under .runtime/
-    - VNC stopped after capture
-    - demo server stopped after proof
-
-# Phase 7D — Profile-aware Headless Scan Integration
-# docs/session-gateway-profile-scan.md
-# tools/proot-playwright-worker/session-profile-scan.mjs
-# scripts/session-profile-scan.sh
-
-# Phase 7E — Proof Guard Hardening
-# scripts/session-profile-scan-proof.sh
-# npm scripts: session:profile:guard, session:profile:proof, session:profile:proof:demo
-
-# Phase 7F — MCP Profile Scan Integration
-# src/mcp-core.mjs
-# MCP tool: browser_scan_with_profile
-# Reuses scripts/session-profile-scan.sh
-  - docs/phase-7i-repeat-auth-profile-verification.md
-  - docs/phase-7j-remote-manual-login-gateway-design.md
-
-# Phase 7L public HTTPS noVNC gateway design
-- path: docs/phase-7l-public-https-novnc-gateway-design.md
-  description: Design-only safety contract for future temporary public HTTPS noVNC manual login gateway.
+  before_code_changes:
+    - review README.md, TODO.md, llm-index.yaml, package.json, and relevant session helpers
+    - preserve all port and secret boundaries
+    - do not assume profile existence means valid remote login
+  when_testing_authenticated_profiles:
+    - use dummy or safe accounts
+    - set SESSION_SCAN_SUPPRESS_EXCERPT=1
+    - use expected authenticated text
+    - never print secret artifacts
+  when_profile_is_missing_or_expired:
+    - print local manual-login refresh instructions
+    - do not auto-start VNC
+    - do not auto-start noVNC
+    - never auto-start public noVNC
+  when_user_mentions_termux_distribution:
+    - current installation is Google Play
+    - do not recommend migration by default
+    - consider distribution differences only as a troubleshooting hypothesis for unusual dependency, proot, linker, permission, add-on, or executable behavior
