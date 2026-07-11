@@ -9,8 +9,23 @@ PID_FILE="$RUNTIME_DIR/mcp-http.pid"
 HOST="${MCP_HTTP_HOST:-0.0.0.0}"
 PORT="${MCP_HTTP_PORT:-3003}"
 MCP_PATH="${MCP_HTTP_PATH:-/mcp}"
+TOKEN="${MCP_HTTP_TOKEN:-}"
 HEALTH_URL="http://127.0.0.1:$PORT/health"
 LOCAL_MCP_URL="http://127.0.0.1:$PORT$MCP_PATH"
+
+is_loopback_host() {
+  case "$1" in
+    127.0.0.1|localhost|::1) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+if ! is_loopback_host "$HOST" && [ -z "$TOKEN" ]; then
+  echo "FAIL: MCP_HTTP_TOKEN is required when MCP_HTTP_HOST is not loopback." >&2
+  echo "Requested bind host: $HOST" >&2
+  echo "Use 127.0.0.1 for unauthenticated local-only testing, or provide a strong bearer token." >&2
+  exit 1
+fi
 
 mkdir -p "$RUNTIME_DIR"
 
@@ -47,7 +62,7 @@ echo "Starting MCP HTTP server on $HOST:$PORT..."
 MCP_HTTP_HOST="$HOST" \
 MCP_HTTP_PORT="$PORT" \
 MCP_HTTP_PATH="$MCP_PATH" \
-MCP_HTTP_TOKEN="${MCP_HTTP_TOKEN:-}" \
+MCP_HTTP_TOKEN="$TOKEN" \
 nohup npm run mcp:http > "$LOG_FILE" 2>&1 &
 
 NEW_PID="$!"
@@ -73,7 +88,12 @@ if command -v curl >/dev/null 2>&1; then
       echo "Port: $PORT"
       echo "Health URL: $HEALTH_URL"
       echo "MCP URL: $LOCAL_MCP_URL"
-      echo "For PC/LAN Inspector, use: http://<S22-IP>:$PORT$MCP_PATH"
+      if is_loopback_host "$HOST"; then
+        echo "Network scope: local-only"
+      else
+        echo "Network scope: all S22 interfaces; bearer authentication is required and enabled"
+        echo "Trusted LAN endpoint: http://<S22-IP>:$PORT$MCP_PATH"
+      fi
       echo "Log: $LOG_FILE"
       exit 0
     fi
