@@ -5,11 +5,19 @@ import { randomUUID } from 'crypto';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createS22McpServer } from './mcp-core.mjs';
 import { registerAuthenticatedTaskTools } from './mcp-auth-task-tools.mjs';
+import { registerAuthenticatedLoginGatewayTools } from './mcp-auth-login-gateway-tools.mjs';
 
 const HOST = process.env.MCP_HTTP_HOST || '127.0.0.1';
 const PORT = Number(process.env.MCP_HTTP_PORT || 3003);
 const MCP_PATH = process.env.MCP_HTTP_PATH || '/mcp';
 const AUTH_TOKEN = process.env.MCP_HTTP_TOKEN || '';
+const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '::1']);
+
+if (!LOOPBACK_HOSTS.has(HOST) && !AUTH_TOKEN) {
+  console.error(`FATAL: MCP_HTTP_TOKEN is required when binding MCP HTTP to non-loopback host ${HOST}.`);
+  console.error('Use 127.0.0.1 for unauthenticated local-only testing, or provide a strong bearer token.');
+  process.exit(1);
+}
 
 const sessions = new Map();
 
@@ -74,6 +82,7 @@ function readJsonBody(req) {
 async function createSession() {
   const mcpServer = createS22McpServer();
   registerAuthenticatedTaskTools(mcpServer);
+  registerAuthenticatedLoginGatewayTools(mcpServer);
 
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: () => randomUUID(),
@@ -177,6 +186,7 @@ const httpServer = http.createServer(async (req, res) => {
       sessions: sessions.size,
       mcpPath: MCP_PATH,
       auth: AUTH_TOKEN ? 'enabled' : 'disabled',
+      bindScope: LOOPBACK_HOSTS.has(HOST) ? 'loopback' : 'all_interfaces',
       timestamp: new Date().toISOString(),
     });
     return;
@@ -219,6 +229,7 @@ httpServer.listen(PORT, HOST, () => {
   console.error(`S22 MCP HTTP server listening on http://${HOST}:${PORT}${MCP_PATH}`);
   console.error(`Health check: http://${HOST}:${PORT}/health`);
   console.error('Mode: stateful sessions');
+  console.error(`Bind scope: ${LOOPBACK_HOSTS.has(HOST) ? 'loopback' : 'all interfaces'}`);
 
   if (!AUTH_TOKEN) {
     console.error('Auth: disabled for local development');
