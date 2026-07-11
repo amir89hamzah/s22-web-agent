@@ -8,7 +8,7 @@ echo "Stopping Route A runtime..."
 echo
 
 echo "Stopping cloudflared..."
-pkill -f cloudflared >/dev/null 2>&1 || true
+pkill -f '[c]loudflared' >/dev/null 2>&1 || true
 
 echo "Stopping MCP HTTP..."
 npm run mcp:http:stop || true
@@ -18,8 +18,11 @@ npm run api:stop || true
 
 echo
 echo "Remaining cloudflared process check:"
-if pgrep -af cloudflared >/dev/null 2>&1; then
-  pgrep -af cloudflared
+if pgrep -f '[c]loudflared' >/dev/null 2>&1; then
+  count="$(pgrep -f '[c]loudflared' | wc -l | tr -d ' ')"
+  echo "cloudflared is still running"
+  echo "process count: $count"
+  echo "command line: suppressed to avoid exposing tunnel token material"
 else
   echo "cloudflared is not running"
 fi
