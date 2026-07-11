@@ -1,412 +1,356 @@
-# S22 Web Agent - Task List
+# S22 Web Agent — Engineering Roadmap
 
-<!-- PHASE7_SESSION_GATEWAY_START -->
+This file tracks the current engineering state of the Samsung S22-hosted MCP and browser-automation project.
 
-## Phase 7 — User-Controlled Session Gateway
+## Current status
 
-Status: Phase 7A design-first.
+Latest repository reconciliation phase:
 
-### Phase 7A — Design doc
+```text
+Phase 7P-0 — documentation reconciliation
+```
 
-- [x] Create `docs/session-gateway-design.md`.
-- [x] Cover Option A — Cookie JSON Import via Download folder.
-- [x] Cover Option B — Playwright Manual Login via VNC / Session Capture Mode.
-- [x] State that OAuth is separate and later.
-- [x] Keep default Option B as local VNC on S22.
-- [x] Keep noVNC/Cloudflare temporary login link as optional later only with strong access protection.
-- [x] Add git ignore rules for runtime session artifacts.
+Status:
 
-### Phase 7B — Cookie JSON proof
+- [x] Review latest repository state
+- [x] Confirm latest main commit before changes was `ab2e2e8`
+- [x] Confirm working tree reported clean by operator
+- [x] Reconcile `README.md`
+- [x] Reconcile `TODO.md`
+- [x] Reconcile `llm-index.yaml`
+- [x] Document Phase 7O-E long-gap session continuity
+- [x] Preserve all existing security boundaries
 
-Status: deferred / later.
+Latest important proof:
 
-Reason: user is short on time. Cookie JSON import is useful for a lightweight proof, but the practical direction is Option B / Session Capture Mode because Playwright `storageState` is more reliable than cookie-only import.
+```text
+Phase 7O-E — long-gap session continuity: PASS
+```
 
-Later tasks:
+The real GitHub dummy profile `github-manual-local` survived a full S22 power-off/restart and approximately one week offline. The authenticated profile scan passed without starting VNC/noVNC and without logging in again.
 
-- [ ] Define Download-folder cookie inbox.
-- [ ] Validate profile name and domain allowlist.
-- [ ] Import cookie JSON into `.runtime/sessions/<profile>/` without logging secrets.
-- [ ] Prove cookie/session files never enter git or ChatGPT.
-
-### Phase 7C — Playwright Manual Login via VNC / Session Capture Mode
-
-Status: preferred next practical implementation after design review.
-
-Planned direction:
-
-- [ ] Start temporary visible Chromium/Playwright in Debian proot.
-- [ ] Control it through local VNC on S22.
-- [ ] User logs in manually.
-- [ ] Save `.runtime/sessions/<profile>/storageState.json`.
-- [ ] Close GUI/VNC after capture.
-- [ ] Future scans run headless using named profile and domain allowlist.
-
-<!-- PHASE7_SESSION_GATEWAY_END -->
-
-This file tracks the current engineering roadmap for the S22 Web Agent portfolio project.
-
-The project started as a mobile job radar scanner and has evolved into a Samsung S22-hosted MCP/web automation agent.
-
-## Current Status
-
-Completed core capabilities:
+## Completed core capabilities
 
 - [x] Run Node.js project on Samsung S22 through Termux
-- [x] Store scanned pages in SQLite
-- [x] Generate JSON and Markdown reports
-- [x] Provide CLI commands for scan, list, show, delete, report, and help
-- [x] Provide HTTP API server on local port `3001`
+- [x] Store scanner output in SQLite
+- [x] Generate Markdown reports
+- [x] Provide CLI scanner commands
+- [x] Provide local HTTP API on port `3001`
 - [x] Provide MCP stdio server
-- [x] Provide MCP Streamable HTTP server on local port `3003`
-- [x] Provide browser-rendered inspection through Debian proot Playwright worker on local port `3002`
-- [x] Provide Route A public MCP mode through Cloudflare Named Tunnel
-- [x] Provide OpenAI Secure MCP Tunnel mode for private ChatGPT Custom App integration
-- [x] Add operator helper scripts for Route A
-- [x] Add operator helper scripts for OpenAI Secure MCP Tunnel mode
-- [x] Document successful Route A live test
-- [x] Document successful OpenAI Secure MCP Tunnel test
-- [x] Document successful OpenAI Secure MCP Tunnel helper test
+- [x] Provide MCP Streamable HTTP server on port `3003`
+- [x] Provide Debian proot Playwright worker on port `3002`
+- [x] Provide browser-rendered MCP tools
+- [x] Provide Route A public MCP proof through Cloudflare Named Tunnel
+- [x] Provide OpenAI Secure MCP Tunnel proof
+- [x] Provide VNC and stable tmux-held VNC helpers
+- [x] Provide local noVNC gateway
+- [x] Provide temporary public noVNC proof protected by Cloudflare Access
+- [x] Provide Playwright `storageState` capture
+- [x] Provide named session profiles with domain allowlists
+- [x] Provide local profile-aware authenticated scan
+- [x] Provide MCP `browser_scan_with_profile`
+- [x] Provide pending manual-login MCP tools
+- [x] Prove real GitHub dummy-account login and authenticated scan
+- [x] Prove profile reuse without reopening noVNC
+- [x] Prove profile reuse after S22 restart and a long offline gap
 
-## Operating Modes
+## Security rules
 
-### Local CLI/API Mode
+These rules remain mandatory for all future phases:
 
-- [x] CLI scan through `node src/index.js scan <url>`
-- [x] Local API health through `GET /health`
-- [x] Local API scan through `POST /scan`
-- [x] Local page list through `GET /pages`
-- [x] Local report read through `GET /report/:id`
+- [x] Never request or print passwords
+- [x] Never request or print cookies
+- [x] Never request or print session tokens
+- [x] Never request or print MFA codes
+- [x] Never print or paste `storageState.json` contents
+- [x] Keep `.runtime/` session artifacts out of Git
+- [x] Keep API port `3001` local-only
+- [x] Keep Playwright worker port `3002` local-only
+- [x] Keep raw VNC port `5901` local-only
+- [x] Expose MCP port `3003` only through an intentional controlled route
+- [x] Keep noVNC port `6080` local-only by default
+- [x] Keep any public noVNC route temporary and intentionally started
+- [x] Never auto-start public noVNC as a fallback
+- [x] Keep tunnel tokens and MCP tokens out of Git
+- [ ] Rotate the Cloudflare tunnel token before future public testing because it appeared in early raw logs
+- [x] Do not upgrade npm to a new major version during this phase merely because an update notice appears
+- [x] Do not propose Termux F-Droid migration by default
 
-### MCP Local Mode
+## Session gateway phase history
 
-- [x] MCP stdio server
-- [x] MCP Streamable HTTP server
-- [x] Stateful MCP HTTP sessions
-- [x] Optional MCP HTTP bearer token for local/LAN/Route A testing
-- [x] Shared MCP tools through `src/mcp-core.mjs`
+### Phase 7A — User-controlled session gateway design
 
-### Route A Cloudflare Mode
+Status: COMPLETE.
 
-- [x] Cloudflare Named Tunnel setup
-- [x] Public hostname: `s22agent.aidesk.rest`
-- [x] Public MCP endpoint: `https://s22agent.aidesk.rest/mcp`
-- [x] Expose only MCP HTTP port `3003`
-- [x] Keep API port `3001` private
-- [x] Keep Playwright worker port `3002` private
-- [x] Add Route A start/status/stop helpers
-- [x] Document Route A operator runbook
-- [x] Document Route A live test results
+- [x] Document cookie JSON import as an optional path
+- [x] Select Playwright manual login through VNC as the preferred practical path
+- [x] Define local-only session artifact storage
+- [x] Define no-password/no-cookie/no-token boundary
+- [x] Keep OAuth separate from target-website login
 
-### OpenAI Secure MCP Tunnel Mode
+### Phase 7B — Cookie JSON import
 
-- [x] Connect ChatGPT Custom App through OpenAI Secure MCP Tunnel
-- [x] Run `tunnel-client` inside Debian proot
-- [x] Keep Termux MCP HTTP on `127.0.0.1:3003/mcp`
-- [x] Keep Termux API on `127.0.0.1:3001`
-- [x] Keep Cloudflare Route A off in this mode
-- [x] Prompt for OpenAI runtime API key instead of storing it in the repo
-- [x] Add OpenAI tunnel start/status/stop helpers
-- [x] Add Debian tunnel-client helper
-- [x] Document OpenAI tunnel operator runbook
-- [x] Document OpenAI tunnel helper test results
+Status: DEFERRED.
 
-### Debian Proot Playwright Worker
+Reason:
 
-- [x] Run Chromium/Playwright inside Debian proot
-- [x] Expose worker locally on port `3002`
-- [x] Add browser inspection MCP tools
-- [x] Add worker status and notes helpers
-- [x] Document Debian proot Playwright setup
+Playwright `storageState` captured through a user-controlled browser is more complete and reliable than cookie-only import for the current project.
 
-## Security Rules
+Possible later work:
 
-- [x] Do not expose API port `3001` publicly
-- [x] Do not expose Playwright worker port `3002` publicly
-- [x] Expose only MCP HTTP port `3003` for Route A public mode
-- [x] Keep OpenAI runtime API key out of git
-- [x] Keep Cloudflare tunnel token out of git
-- [x] Keep MCP HTTP token out of git
-- [x] Keep runtime files such as logs, reports, database, and `.runtime/` out of git
+- [ ] Define Android Download-folder cookie inbox
+- [ ] Validate imported profile and domain allowlist
+- [ ] Import without logging secret values
+- [ ] Prove imported artifacts remain under `.runtime/`
 
-## Recently Completed Milestones
-
-- [x] Phase 5 OpenAI Secure MCP Tunnel proof
-- [x] Phase 6 OpenAI Secure MCP Tunnel operator helpers
-- [x] Phase 6.5 OpenAI tunnel helper test documentation
-- [x] README updated with OpenAI Secure MCP Tunnel mode
-- [x] Repo audit after Phase 6.5
-- [x] Confirmed `server.log` is ignored and not tracked
-- [x] Removed temporary repo review artifact
-
-## Next Recommended Phase
-
-## Phase 7 - Cookie/Session Login Workflow
-
-Goal: allow user-controlled login/session handling for websites that require authentication, without giving credentials to ChatGPT and without committing secrets to the repo.
-
-Planned work:
-
-- [ ] Write design doc for cookie/session login workflow
-- [ ] Define security rules for browser cookies and session files
-- [ ] Decide storage location for local-only session files
-- [ ] Add `.gitignore` rules for cookie/session artifacts if needed
-- [ ] Define manual login flow using a user-controlled browser
-- [ ] Define import/export flow for Playwright context or cookie JSON
-- [ ] Test with a safe non-sensitive website first
-- [ ] Document what should never be pasted into ChatGPT
-- [ ] Keep implementation lightweight to avoid overloading Samsung S22
-
-Out of scope for first Phase 7 pass:
-
-- [ ] Full password manager integration
-- [ ] Automatic credential entry
-- [ ] Storing usernames/passwords in repo or scripts
-- [ ] Heavy background browser automation
-
-## Later Phase - Optional OAuth
-
-OAuth is not required for the current working OpenAI Secure MCP Tunnel mode.
-
-Consider OAuth later only if a production-style ChatGPT App authentication layer is needed.
-
-Possible future work:
-
-- [ ] Add OAuth protected-resource metadata endpoint
-- [ ] Add OAuth authorization-server metadata endpoint
-- [ ] Decide token validation model
-- [ ] Decide scopes and access policy
-- [ ] Document difference between local no-auth tunnel mode and production OAuth mode
-
-## Later Phase - Portfolio Polish
-
-- [ ] Add screenshots of Termux runtime
-- [ ] Add screenshots of ChatGPT Custom App tool calls
-- [ ] Add architecture diagram image
-- [ ] Add short demo script for recruiter walkthrough
-- [ ] Add resume bullet points
-- [ ] Add LinkedIn project summary
-- [ ] Add concise "What this demonstrates" section
-- [ ] Add limitations and security tradeoffs in simple language
-
-## Later Phase - Automated Smoke Tests
-
-- [ ] Add smoke test for API health
-- [ ] Add smoke test for MCP HTTP health
-- [ ] Add smoke test for scan `example.com`
-- [ ] Add smoke test for Route A when tunnel is running
-- [ ] Add smoke test notes for OpenAI Secure MCP Tunnel mode
-
-## Parking Lot
-
-These items are intentionally not prioritized now:
-
-- [ ] Improve scanner scoring rules
-- [ ] Add advanced domain typo correction
-- [ ] Add heavier browser fallback logic
-- [ ] Add background scheduling
-- [ ] Add mobile app packaging
-- [ ] Add multi-user auth
-
-<!-- PHASE7C1_VNC_HELPERS_START -->
-
-## Phase 7C-1 — Local VNC Baseline Helpers
-
-Status: PASS / ready to commit.
-
-Completed manually before helper patch:
-
-- [x] Installed TigerVNC, Openbox, xterm, and supporting packages inside Debian proot.
-- [x] Started local-only TigerVNC on display `:1` / port `5901`.
-- [x] Connected from AVNC on S22 to `127.0.0.1:5901`.
-- [x] Confirmed Openbox + `xterm` visible.
-- [x] Confirmed Chromium visible with `https://example.com`.
-- [x] Stopped VNC and cleaned stale Chromium/VNC artifacts.
-
-Helper scripts added:
-
-- [x] `npm run session:vnc:start`
-- [x] `npm run session:vnc:status`
-- [x] `npm run session:vnc:stop`
-
-Next:
-
-- [ ] Phase 7C-2 / 7C-3: implement Session Capture Mode to save `.runtime/sessions/<profile>/storageState.json`.
-
-<!-- PHASE7C1_VNC_HELPERS_END -->
-
-<!-- PHASE7C2_SESSION_CAPTURE_PROOF_START -->
-
-## Phase 7C-2 — Session Capture Mode Proof
-
-Status: dummy proof PASS.
-
-Added:
-
-- [x] Visible Playwright capture helper.
-- [x] `npm run session:capture:example`.
-- [x] `npm run session:capture:start`.
-- [x] `npm run session:capture:status`.
-- [x] Safe profile-name validation.
-- [x] Domain allowlist check.
-- [x] Save `storageState.json` under `.runtime/sessions/<profile>/`.
-- [x] Save metadata without cookie/session values.
-
-First proof target:
-
-- [x] Run with `example-proof` profile and `https://example.com/`.
-- [x] Confirm Chromium opens visibly in AVNC.
-- [x] Press Enter to save storageState.
-- [x] Confirm `.runtime/` artifacts do not appear in git status.
-- [x] Stop VNC after proof.
-
-Real website login remains later after dummy proof passes.
-
-<!-- PHASE7C2_SESSION_CAPTURE_PROOF_END -->
-
-<!-- PHASE7C3_LOGIN_REUSE_PROOF_START -->
-
-## Phase 7C-3 — Local Demo Login Capture + Headless Reuse Proof
+### Phase 7C — VNC, capture, and local reuse
 
 Status: PASS.
 
-Completed:
+- [x] Local TigerVNC baseline
+- [x] Visible Chromium through VNC
+- [x] Session Capture Mode
+- [x] Local demo login capture
+- [x] Headless reuse proof
 
-- [x] Added local-only demo login server.
-- [x] Started demo server at `http://127.0.0.1:3107`.
-- [x] Logged in manually through AVNC.
-- [x] Captured `local-login-demo` storageState.
-- [x] Ran headless reuse against `/secure`.
-- [x] Confirmed protected text: `S22 DEMO AUTH PASS`.
-- [x] Confirmed `.runtime/` artifacts did not enter git status.
-- [x] Stopped VNC and demo server after proof.
+### Phase 7D — Profile-aware headless scan
 
-Next:
+Status: PASS.
 
-- [ ] Decide whether to test a non-sensitive external website profile.
-- [ ] Add profile-aware headless scan integration later.
+- [x] Named profile input
+- [x] Safe profile-name validation
+- [x] Internal storageState path resolution
+- [x] Domain allowlist enforcement
+- [x] Expected-text verification
 
-<!-- PHASE7C3_LOGIN_REUSE_PROOF_END -->
+### Phase 7E — Proof guard hardening
 
-## Phase 7D — Profile-aware Headless Scan Integration
-- [x] Add local profile-aware headless scan helper.
-- [x] Add Termux wrapper using Debian proot.
-- [x] Prove scan using local demo profile before MCP integration.
-- [ ] Integrate profile-aware scan into MCP only after helper proof is clean.
-- [ ] Real external login scans are deferred until explicitly requested.
+Status: PASS.
 
+- [x] Guard against empty or truncated helper files
+- [x] Require safe PASS output
+- [x] Document recovery lesson
 
-## Phase 7E — Proof Guard Hardening
-- [x] Add proof guard wrapper for profile-aware scan.
-- [x] Add guard-only command to detect empty/truncated helper files.
-- [x] Add proof command that fails unless safe PASS output is found.
-- [x] Document Phase 7D recovery lesson.
-- [ ] Integrate profile-aware scan into MCP only after proof guard remains clean.
+### Phase 7F — MCP profile scan integration
 
-## Phase 7F — MCP Profile Scan Integration
-- [x] Add MCP tool for profile-aware headless scan.
-- [x] Reuse existing session profile helper instead of duplicating storageState logic.
-- [x] Keep MCP input limited to profile, URL, and optional expected text.
-- [x] Keep storageState path resolution internal to the helper.
-- [x] Test MCP tool call through local MCP HTTP.
-- [ ] Do not test external real login until explicitly requested.
+Status: PASS.
 
-## Phase 7G — Pre-login Cleanup
+- [x] Add `browser_scan_with_profile`
+- [x] Reuse existing profile helper
+- [x] Limit MCP arguments to profile, URL, and optional expected text
+- [x] Keep arbitrary storageState paths out of MCP input
 
-Status: planned / in progress.
+### Phase 7G — Pre-login cleanup
 
-Goals:
+Status: COMPLETE.
 
-- Document safety boundary before real external login.
-- Confirm `browser_scan_with_profile` accepts profile/url/expectedText only.
-- Confirm password/cookie/token/storageState values are not accepted through MCP arguments.
-- Confirm session/profile artifacts are ignored by Git.
-- Re-run local profile scan sanity check.
-- Keep public tunnel off until MCP auth is enabled and intentionally started.
+- [x] Document safety boundary before real external login
+- [x] Confirm session artifacts are ignored by Git
+- [x] Confirm public tunnel remains off during first real login trial
+- [x] Suppress authenticated page excerpts
 
-Exit criteria:
+### Phase 7H — Real GitHub dummy login
 
-- `docs/phase-7g-pre-login-cleanup.md` committed.
-- `.gitignore` contains session/profile safety rules.
-- Local demo profile scan still passes.
-- No cookie/session/token/password values are printed.
-- Main branch clean and pushed.
-- External real login still not tested.
+Status: PASS.
 
-## Phase 7H — Pending Manual Login Job
+- [x] Manual login through local VNC
+- [x] Save named profile locally
+- [x] Direct authenticated scan passed
+- [x] MCP authenticated scan passed
+- [x] No secret values printed
 
-Status: completed.
+### Phase 7I — Stable VNC and repeated verification
 
-Goals:
+Status: PASS.
 
-- Add MCP pending manual login job flow.
-- Add start/status/complete/cancel manual login wrappers.
-- Save storageState locally under `.runtime/sessions/<profile>/` only.
-- Keep password/cookie/token/storageState out of MCP arguments and logs.
-- Suppress authenticated page text excerpts during MCP profile scans.
-- Keep public tunnel off during the first real login trial.
+- [x] Add tmux-held stable VNC wrapper
+- [x] Repeat real GitHub dummy login with a second profile
+- [x] Verify authenticated profile reuse
+- [x] Stop services after test
 
-Exit criteria:
+### Phase 7J — Remote manual-login gateway design
 
-- `browser_start_manual_login`, `browser_manual_login_status`, `browser_complete_manual_login`, and `browser_cancel_manual_login` appear in MCP tools/list.
-- Direct manual login wrapper can create a named profile.
-- `browser_scan_with_profile` works with the created profile.
-- No cookie/session/token/password/storageState values are printed.
-- Main branch clean and pushed.
+Status: COMPLETE — DESIGN ONLY.
 
-Phase 7H real-login trial result:
+- [x] Separate MCP command route from human login route
+- [x] Select HTTPS noVNC as the future remote-login UX
+- [x] Forbid public raw VNC
+- [x] Require temporary protected public route
 
-- Manual GitHub dummy-account login through local VNC: PASS.
-- Pending manual login completion saved `github-login-demo` profile locally.
-- Direct `session-profile-scan.sh` authenticated page scan: PASS.
-- Local MCP `browser_scan_with_profile` authenticated page scan: PASS.
-- Expected text `Public profile` found.
-- Authenticated page text excerpt suppression: PASS.
-- No cookie/session/token/password/storageState values printed.
-- Public tunnel not used.
+### Phase 7K — Local noVNC proof
 
-## Phase 7I — Repeat Authenticated Profile Verification
+Status: PASS.
 
-Status: Completed / PASS.
+- [x] Local noVNC on `127.0.0.1:6080`
+- [x] Forward to local VNC on `127.0.0.1:5901`
+- [x] Keep public tunnel off
 
-- Added stable tmux-held VNC wrapper for Debian proot manual login sessions.
-- Repeated authenticated manual login using profile `github-login-demo-2`.
-- Verified GitHub authenticated page `https://github.com/settings/appearance`.
-- Direct profile scan found expected text `Appearance`.
-- Local MCP `browser_scan_with_profile` found expected text `Appearance`.
-- Confirmed `SESSION_SCAN_SUPPRESS_EXCERPT=1` suppression.
-- Confirmed no cookie/session/token/password/storageState values were printed.
-- Public tunnel was not used.
-- Services were stopped after the run.
+### Phase 7L — Public HTTPS noVNC design
 
-Next:
-- Phase 7J: design authenticated continuity with secured MCP auth + tunnel safety gates before any public execution.
+Status: COMPLETE — DESIGN ONLY.
 
-## Phase 7J — Remote Manual Login Gateway Design
+- [x] Define temporary public login hostname
+- [x] Require Cloudflare protection
+- [x] Keep API `3001` and worker `3002` private
+- [x] Keep raw VNC `5901` private
 
-Status: Design documented.
+### Phase 7M — Local noVNC-assisted manual-login integration
 
-Decision:
-- Treat local aVNC login from Phase 7I as a test/proof stage.
-- Target final remote-login UX is a temporary HTTPS noVNC link.
-- noVNC should act as an adapter between browser-based login and local-only VNC 5901.
-- Do not expose raw VNC 5901 publicly.
-- Use Cloudflare Route A for the future noVNC/login gateway direction.
-- Park OpenAI Secure MCP Tunnel for later MCP-only review.
-- Keep MCP command route and noVNC human-login route as separate concerns.
+Status: PASS.
 
-Next:
-- Phase 7M: local noVNC-assisted manual login job integration.
-- Phase 7N: temporary protected Cloudflare noVNC link proof.
-- Phase 7O: full agent continuity after safety gates are proven.
+- [x] Combined start/status/complete/cancel flow
+- [x] Local demo login through browser-based noVNC
+- [x] Save profile and verify headless reuse
+- [x] Harden stale process cleanup
+- [x] Keep all routes local-only
 
-## Phase 7L — Public HTTPS noVNC Gateway Design
+### Phase 7N — Temporary protected public noVNC proof
 
-Status: Completed — design only.
+Status: PASS.
 
-Notes:
-- Designed future temporary HTTPS noVNC login route.
-- No public tunnel was started.
-- Raw VNC `5901` must remain local-only.
-- API `3001` and Playwright worker `3002` must not be exposed.
-- Future public noVNC route must be temporary, token-protected, timeout-bound, and human-controlled.
+- [x] Separate hostname for login route
+- [x] Cloudflare Access protection
+- [x] Temporary cloudflared connector lifecycle
+- [x] Public noVNC demo login proof
+- [x] Local storageState capture
+- [x] Headless reuse verification
+- [x] Runtime cleanup after proof
+- [ ] Rotate exposed historical tunnel token before another public test
+
+### Phase 7O — Agent continuity after safety gates
+
+Status: PASS.
+
+- [x] Reuse saved local demo profile without noVNC
+- [x] Reuse saved demo profile after S22 restart
+- [x] Capture real GitHub dummy profile through local noVNC
+- [x] Reuse real profile after noVNC/VNC stop
+- [x] Reuse real profile after SSH reconnect
+- [x] Keep public noVNC off during real-site proof
+
+### Phase 7O-E — Long-gap continuity
+
+Status: PASS.
+
+- [x] Power S22 off for approximately one week
+- [x] Power S22 back on
+- [x] Reconnect SSH
+- [x] Do not start VNC
+- [x] Do not start noVNC
+- [x] Do not repeat login
+- [x] Reuse `github-manual-local`
+- [x] Find expected authenticated text `Public profile`
+- [x] Suppress page excerpt
+- [x] Print no cookie/session values
+
+Proof document:
+
+```text
+docs/phase-7o-e-long-gap-session-continuity.md
+```
+
+## Next recommended phase
+
+## Phase 7P — Operator-quality profile lifecycle helpers
+
+Goal:
+
+Make saved-profile reuse easy to understand and fail safely without confusing file existence with remote website validity.
+
+### 7P-1 — `session:profile:status`
+
+- [ ] Add a lightweight local file/metadata inspection command
+- [ ] Do not launch Chromium
+- [ ] Validate safe profile name
+- [ ] Detect missing profile artifacts
+- [ ] Detect invalid metadata or unreadable files
+- [ ] Optionally compare a target URL against the profile domain allowlist
+- [ ] Return `present_unverified` when files exist but no live website probe was performed
+
+### 7P-2 — `session:profile:probe`
+
+- [ ] Launch headless Chromium inside Debian proot
+- [ ] Require named profile and target URL
+- [ ] Use expected authenticated text as the validity marker
+- [ ] Return `valid` only when the authenticated marker is found
+- [ ] Return `expired_or_logged_out` when navigation succeeds but the marker is absent
+- [ ] Return `domain_mismatch` before browser launch when target host is not allowed
+- [ ] Return `runtime_error` for browser, network, parsing, or runtime failures
+- [ ] Continue suppressing authenticated text excerpts by default
+- [ ] Never print cookie/session/storageState values
+
+### 7P-3 — `session:profile:ensure`
+
+- [ ] Run status and probe in a clear reuse-first flow
+- [ ] Exit successfully only for `valid`
+- [ ] Print safe local manual-login refresh instructions for missing or expired profiles
+- [ ] Allow an operator-supplied login URL for refresh guidance
+- [ ] Never start VNC/noVNC automatically
+- [ ] Never start Cloudflare or any public route automatically
+- [ ] Never perform automatic credential entry
+
+### Required Phase 7P states
+
+```text
+missing
+present_unverified
+valid
+expired_or_logged_out
+domain_mismatch
+runtime_error
+```
+
+### Phase 7P acceptance criteria
+
+- [ ] Existing valid GitHub dummy profile returns `valid`
+- [ ] Unknown profile returns `missing`
+- [ ] Existing profile without a live probe returns `present_unverified`
+- [ ] Wrong target domain returns `domain_mismatch`
+- [ ] Missing expected authenticated text returns `expired_or_logged_out`
+- [ ] Browser/runtime failure returns `runtime_error`
+- [ ] `ensure` prints local-only refresh guidance
+- [ ] `ensure` does not auto-start public noVNC
+- [ ] No secret values are printed
+- [ ] `.runtime/` remains ignored
+- [ ] Relevant docs and `llm-index.yaml` are updated
+- [ ] Main branch is clean after operator pulls and tests
+
+## Later work
+
+### Optional OAuth
+
+OAuth is not required for target-website session reuse. Consider it only if a production-style authentication layer is needed in front of the MCP tools.
+
+- [ ] Protected-resource metadata
+- [ ] Authorization-server metadata
+- [ ] Token validation model
+- [ ] Scope and access policy
+
+### Portfolio polish
+
+- [ ] Architecture diagram image
+- [ ] More screenshots
+- [ ] Short demo video or GIF
+- [ ] Recruiter walkthrough script
+- [ ] Resume bullet points
+- [ ] LinkedIn project summary
+
+### Automated smoke tests
+
+- [ ] API health smoke test
+- [ ] MCP HTTP health smoke test
+- [ ] Static scan smoke test
+- [ ] Safe local profile-status tests
+- [ ] Safe local demo profile-probe tests
+
+## Parking lot
+
+These items are intentionally not prioritized now:
+
+- [ ] Heavy background scheduling
+- [ ] Automatic credential entry
+- [ ] Password-manager integration
+- [ ] Multi-user authentication
+- [ ] Mobile app packaging
+- [ ] Large general-purpose agent framework migration
+- [ ] Termux distribution migration without a specific troubleshooting reason
