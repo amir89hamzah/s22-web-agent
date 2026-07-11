@@ -2,8 +2,6 @@
 
 S22 Web Agent repurposes a Samsung Galaxy S22 into a controlled, self-hosted MCP and browser-automation execution node.
 
-It runs across:
-
 ```text
 Samsung S22
   -> Termux
@@ -12,66 +10,45 @@ Samsung S22
   -> Debian proot
   -> Playwright + Chromium
   -> VNC/noVNC for human-controlled login
-  -> controlled tunnel access when intentionally enabled
+  -> controlled tunnels when intentionally enabled
 ```
 
 The project is a learning and portfolio proof for applied AI automation, MCP tool development, secure browser workflows, and constrained-device engineering.
 
 ## Current status
 
-Core scanner, MCP, browser worker, manual-login, and authenticated-session continuity proofs are complete.
-
-Latest completed proof:
+Latest completed runtime proof:
 
 ```text
 Phase 7O-E — long-gap session continuity: PASS
 ```
 
-A real GitHub dummy-account profile named `github-manual-local` remained authenticated after:
+The real GitHub dummy profile `github-manual-local` remained authenticated after a full S22 power-off/restart and approximately one week offline. It was reused headlessly without starting VNC/noVNC and without logging in again.
 
-- full S22 power-off and restart
-- approximately one week offline
-- runtime shutdown
-- SSH reconnect
-- repeated headless reuse
-
-The authenticated scan passed without starting VNC/noVNC and without logging in again.
-
-Current next phase:
+Current engineering phase:
 
 ```text
 Phase 7P — operator-quality profile lifecycle helpers
 ```
 
-Planned commands:
+Implementation status:
 
-```text
-session:profile:status
-session:profile:probe
-session:profile:ensure
-```
+- `session:profile:status`: added
+- `session:profile:probe`: added
+- `session:profile:ensure`: added
+- `session:profile:self-test`: added
+- static JavaScript and shell syntax checks: PASS
+- local file-state classifier test: PASS
+- live S22 Debian/Chromium verification: pending operator run
 
-Planned safe states:
+Phase 7P is therefore implemented but not yet marked fully PASS.
 
-```text
-missing
-present_unverified
-valid
-expired_or_logged_out
-domain_mismatch
-runtime_error
-```
+## Current capabilities
 
-`session:profile:ensure` must never auto-start public noVNC. Any refresh remains a human-controlled manual-login action.
-
-## What the project currently demonstrates
-
-- CLI webpage scanning
-- local HTTP API scanning
+- CLI and HTTP webpage scanning
 - SQLite-backed scan history
 - Markdown report generation
-- MCP stdio server
-- MCP Streamable HTTP server
+- MCP stdio and Streamable HTTP
 - stateful MCP HTTP sessions
 - optional bearer-token protection
 - Cloudflare Route A public MCP proof
@@ -87,16 +64,12 @@ runtime_error
 - domain-allowlisted authenticated scans
 - MCP `browser_scan_with_profile`
 - real GitHub dummy-account login and reuse
-- session reuse without reopening noVNC
-- session continuity after device restart and a long offline gap
+- session continuity after S22 restart and a long offline gap
+- explicit saved-profile lifecycle states
 
 ## Project positioning
 
-S22 Web Agent is intentionally not a general-purpose personal-agent framework.
-
-It is a controlled execution node that exposes approved MCP tools while keeping sensitive local services and browser session artifacts private.
-
-The preferred relationship is:
+S22 Web Agent is not intended to become a broad personal-agent framework. It is a controlled execution node that exposes approved MCP tools while keeping local services and browser session artifacts private.
 
 ```text
 ChatGPT / Codex / another MCP client
@@ -105,11 +78,11 @@ ChatGPT / Codex / another MCP client
   -> local scanner or browser workflow
 ```
 
-See `docs/why-custom-s22-web-agent.md` for the detailed design rationale.
+See `docs/why-custom-s22-web-agent.md` for the detailed rationale.
 
 ## Architecture
 
-### Local scanner path
+### Scanner path
 
 ```text
 CLI or local HTTP request
@@ -136,7 +109,7 @@ Human-controlled login through VNC/noVNC
   -> future headless authenticated scans
 ```
 
-The user performs login manually. Passwords, cookies, MFA codes, tokens, and `storageState` contents are not passed to the AI assistant.
+Passwords, cookies, tokens, MFA codes, and `storageState` contents are not passed to the AI assistant.
 
 ### Route A public MCP path
 
@@ -160,7 +133,7 @@ Remote browser
   -> Debian Chromium
 ```
 
-This route is separate from the MCP hostname. It is temporary, operator-controlled, and must be stopped after use.
+This route is separate from the MCP hostname. It must remain temporary, protected, human-controlled, and intentionally started.
 
 ## Ports and exposure policy
 
@@ -168,14 +141,12 @@ This route is separate from the MCP hostname. It is temporary, operator-controll
 |---:|---|---|
 | `3001` | Local HTTP API | Never public |
 | `3002` | Debian Playwright worker | Never public |
-| `3003` | MCP Streamable HTTP | May be exposed only through an intentional protected MCP route |
+| `3003` | MCP Streamable HTTP | Intentional protected MCP route only |
 | `5901` | Raw VNC | Local-only; never public |
-| `6080` | noVNC/websockify | Local-only by default; temporary protected public route only when intentionally started |
-| `3107` | Local demo login server | Local-only |
+| `6080` | noVNC/websockify | Local-only by default; temporary protected route only |
+| `3107` | Demo login server | Local-only |
 
 ## Security boundary
-
-The following rules are mandatory:
 
 - Never request or print passwords.
 - Never request or print cookies.
@@ -183,16 +154,16 @@ The following rules are mandatory:
 - Never request or print MFA codes.
 - Never print or paste `storageState.json` contents.
 - Keep `.runtime/sessions/` out of Git.
-- Keep API port `3001` local-only.
-- Keep Playwright worker port `3002` local-only.
-- Keep raw VNC port `5901` local-only.
-- Expose MCP port `3003` only through an intentional controlled route.
+- Keep ports `3001`, `3002`, and `5901` local-only.
+- Expose port `3003` only through an intentional controlled MCP route.
 - Keep public noVNC temporary and intentionally started.
 - Never auto-start public noVNC as a fallback.
 - Keep tunnel tokens and MCP tokens out of the repository.
-- Rotate the Cloudflare tunnel token before future public testing because it appeared in early raw logs before helper hardening.
+- Rotate the Cloudflare tunnel token before future public tests because it appeared in early raw logs before helper hardening.
+- Do not upgrade npm to a new major version during this phase merely because an update notice appears.
+- The current Termux installation is from Google Play; do not propose F-Droid migration by default.
 
-Generated runtime data is ignored by Git:
+Runtime artifacts ignored by Git:
 
 ```text
 .runtime/
@@ -205,8 +176,6 @@ reports/
 ## Main operating modes
 
 ### Local CLI/API
-
-Use for ordinary local scanning and development.
 
 ```bash
 node src/index.js scan example.com
@@ -255,19 +224,10 @@ Public endpoint:
 https://s22agent.aidesk.rest/mcp
 ```
 
-Do not expose ports `3001` or `3002` through this route.
-
 ### OpenAI Secure MCP Tunnel
-
-Start Termux services:
 
 ```bash
 npm run openai:tunnel:start
-```
-
-Run the tunnel client inside Debian proot:
-
-```bash
 proot-distro login debian
 cd /data/data/com.termux/files/home/projects/mobile-job-radar-agent
 npm run openai:tunnel:client:debian
@@ -282,32 +242,24 @@ npm run openai:tunnel:stop
 
 The runtime key is prompted locally and is not stored in the repository.
 
-## Session and login helpers
+## Session helpers
 
-### VNC
+### VNC and noVNC
 
 ```bash
 npm run session:vnc:start
 npm run session:vnc:status
 npm run session:vnc:stop
-```
 
-Stable tmux-held VNC:
-
-```bash
 npm run session:vnc:start:stable
 npm run session:vnc:stop:stable
-```
 
-### Local noVNC
-
-```bash
 npm run session:novnc:start:local
 npm run session:novnc:status:local
 npm run session:novnc:stop:local
 ```
 
-### Manual login through local noVNC
+### Human-controlled local login
 
 ```bash
 SESSION_LOGIN_TIMEOUT_MS=1200000 npm run session:manual-login:novnc:start -- <profile> <login-url>
@@ -316,31 +268,125 @@ SESSION_SCAN_SUPPRESS_EXCERPT=1 npm run session:manual-login:novnc:complete -- <
 npm run session:manual-login:novnc:cancel -- <profile>
 ```
 
-### Reuse a saved profile
+### Existing profile scan
 
 ```bash
 SESSION_SCAN_SUPPRESS_EXCERPT=1 npm run session:profile:scan -- <profile> <url> "<expected-text>"
 ```
 
-A saved file is not proof that the website session is still valid. The target website may expire, revoke, or challenge the session. Phase 7P will add explicit status and probe classification.
+## Phase 7P profile lifecycle
 
-### Temporary public noVNC helpers
+A profile file existing locally does not prove that the remote website session is still authenticated.
 
-```bash
-npm run session:novnc:public-temp:start-guide -- <public-host>
-npm run session:novnc:public-temp:status -- <public-host>
-npm run session:novnc:public-temp:stop-guide -- <public-host>
+### States
 
-npm run session:novnc:public-temp:tunnel:start
-npm run session:novnc:public-temp:tunnel:status
-npm run session:novnc:public-temp:tunnel:stop
+```text
+missing
+present_unverified
+valid
+expired_or_logged_out
+domain_mismatch
+runtime_error
 ```
 
-These commands do not change the rule that public noVNC must be temporary, protected, and human-controlled.
+Exit codes:
+
+| State | Code |
+|---|---:|
+| `present_unverified` | `0` |
+| `valid` | `0` |
+| `missing` | `20` |
+| `expired_or_logged_out` | `21` |
+| `domain_mismatch` | `22` |
+| `runtime_error` | `23` |
+
+### Lightweight status
+
+Does not launch Chromium:
+
+```bash
+npm run session:profile:status -- <profile> [target-url]
+```
+
+An existing readable profile normally returns:
+
+```text
+present_unverified
+```
+
+### Live authenticated probe
+
+Launches headless Chromium inside Debian proot and requires an authenticated marker:
+
+```bash
+npm run session:profile:probe -- <profile> <authenticated-url> "<expected-text>"
+```
+
+```text
+marker found     -> valid
+marker not found -> expired_or_logged_out
+```
+
+Page text excerpts are suppressed by design.
+
+### Reuse-first ensure
+
+```bash
+npm run session:profile:ensure -- <profile> <authenticated-url> "<expected-text>" [login-url]
+```
+
+`ensure` checks local status first and then performs a live probe. When refresh is required, it prints safe local manual-login guidance with URL placeholders. It does not echo supplied URLs and does not start VNC, noVNC, Cloudflare, or any public route.
+
+### Local self-test
+
+```bash
+npm run session:profile:self-test
+```
+
+The disposable test covers:
+
+```text
+missing
+present_unverified
+domain_mismatch
+runtime_error
+```
+
+It does not touch a real profile.
+
+Detailed implementation and test instructions:
+
+```text
+docs/phase-7p-profile-lifecycle-helpers.md
+```
+
+## Required S22 verification
+
+After pulling the latest `main` branch:
+
+```bash
+cd ~/projects/mobile-job-radar-agent
+git pull --ff-only
+npm run session:profile:self-test
+npm run session:profile:status -- github-manual-local https://github.com/settings/profile
+npm run session:profile:probe -- github-manual-local https://github.com/settings/profile "Public profile"
+npm run session:profile:ensure -- github-manual-local https://github.com/settings/profile "Public profile" https://github.com/login
+git status --short
+```
+
+Expected while the GitHub dummy session remains authenticated:
+
+```text
+self-test -> PASS
+status    -> present_unverified
+probe     -> valid
+ensure    -> valid
+git status --short -> no output
+```
+
+These checks do not require VNC, noVNC, or a public tunnel.
 
 ## MCP tools
-
-Main tools include:
 
 ```text
 job_radar_health
@@ -357,46 +403,39 @@ browser_complete_manual_login
 browser_cancel_manual_login
 ```
 
-The authenticated profile tool accepts only a named profile, target URL, and optional expected text. It does not accept passwords, cookies, tokens, or an arbitrary `storageState` path.
+The authenticated profile MCP tool accepts only a named profile, target URL, and optional expected text. It does not accept passwords, cookies, tokens, or an arbitrary `storageState` path.
 
-## Completed session-gateway milestones
+## Session-gateway milestones
 
 | Phase | Result |
 |---|---|
 | 7A | Session gateway design documented |
 | 7B | Cookie JSON path deferred |
-| 7C | VNC baseline, session capture, and local reuse proof passed |
+| 7C | VNC baseline, capture, and local reuse passed |
 | 7D | Profile-aware headless scan passed |
 | 7E | Proof guard hardening passed |
 | 7F | MCP profile scan integration passed |
 | 7G | Pre-login security cleanup completed |
-| 7H | Real GitHub dummy login and authenticated scan passed |
-| 7I | Stable tmux VNC and repeated authenticated verification passed |
-| 7J | Remote manual-login gateway design documented |
-| 7K | Local noVNC gateway proof passed |
-| 7L | Public HTTPS noVNC safety design documented |
-| 7M | Local noVNC-assisted manual-login integration passed |
-| 7N | Cloudflare Access protected temporary public noVNC proof passed |
-| 7O | Saved-profile agent continuity passed |
-| 7O-E | GitHub dummy session survived full restart and approximately one week offline |
+| 7H | Real GitHub dummy login and scan passed |
+| 7I | Stable tmux VNC and repeated verification passed |
+| 7J | Remote login gateway design documented |
+| 7K | Local noVNC proof passed |
+| 7L | Public HTTPS noVNC design documented |
+| 7M | Local noVNC-assisted manual login passed |
+| 7N | Cloudflare Access public noVNC demo proof passed |
+| 7O | Saved-profile continuity passed |
+| 7O-E | Full restart plus approximately one week offline passed |
+| 7P | Implemented; live S22 verification pending |
 
 ## Important documentation
 
 ```text
-docs/session-gateway-design.md
-docs/session-gateway-vnc-smoke-test-results.md
-docs/session-gateway-capture-proof.md
-docs/session-gateway-login-reuse-proof.md
-docs/session-gateway-profile-scan.md
-docs/phase-7g-pre-login-cleanup.md
-docs/phase-7h-real-login-trial-result.md
-docs/phase-7i-repeat-auth-profile-verification.md
-docs/phase-7j-remote-manual-login-gateway-design.md
-docs/phase-7l-public-https-novnc-gateway-design.md
-docs/phase-7m-local-novnc-assisted-manual-login.md
-docs/phase-7n-temporary-cloudflare-access-novnc-proof.md
-docs/phase-7o-agent-continuity-proof.md
 docs/phase-7o-e-long-gap-session-continuity.md
+docs/phase-7p-profile-lifecycle-helpers.md
+docs/phase-7o-agent-continuity-proof.md
+docs/phase-7n-temporary-cloudflare-access-novnc-proof.md
+docs/phase-7m-local-novnc-assisted-manual-login.md
+docs/session-gateway-design.md
 docs/why-custom-s22-web-agent.md
 ```
 
@@ -405,22 +444,10 @@ For AI-assisted repository navigation, see `llm-index.yaml`.
 ## Known limitations
 
 - Android may kill Termux under heavy runtime load.
-- tmux protects against SSH disconnect but not Android terminating the Termux app.
+- tmux protects against SSH disconnect but not Android terminating Termux.
 - AnyDesk, SSH, VNC, noVNC, and Chromium together can make the S22 unstable.
-- A saved profile may exist while the remote website session is expired.
-- Remote websites can revoke sessions independently.
-- Browser automation performance is limited by phone hardware, thermal behavior, and proot overhead.
+- A saved profile may exist while the remote session is expired.
+- Websites can revoke or challenge sessions independently.
+- An absent expected marker can also mean the target page content changed; `expired_or_logged_out` is deliberately a fail-safe classification.
+- Browser performance is limited by phone hardware, thermal behavior, and proot overhead.
 - The project is a controlled engineering proof, not a production-grade managed server.
-
-## Next recommended work
-
-Phase 7P will add operator-quality profile lifecycle helpers:
-
-1. `session:profile:status`
-2. `session:profile:probe`
-3. `session:profile:ensure`
-4. explicit safe states
-5. safe local manual-login refresh instructions
-6. no automatic public noVNC start
-
-Do not upgrade npm to a new major version during this phase merely because an update notice appears.
