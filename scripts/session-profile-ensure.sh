@@ -20,15 +20,15 @@ print_refresh_guidance() {
   echo
   echo "Safe manual-login refresh guidance:"
   echo "  1. Start a local human-controlled login:"
-  if [[ -n "$LOGIN_URL" ]]; then
-    printf '     SESSION_LOGIN_TIMEOUT_MS=1200000 npm run session:manual-login:novnc:start -- %q %q\n' "$PROFILE" "$LOGIN_URL"
-  else
-    printf '     SESSION_LOGIN_TIMEOUT_MS=1200000 npm run session:manual-login:novnc:start -- %q <login-url>\n' "$PROFILE"
-  fi
+  printf '     SESSION_LOGIN_TIMEOUT_MS=1200000 npm run session:manual-login:novnc:start -- %q <login-url>\n' "$PROFILE"
   echo "  2. Complete login manually in local VNC/noVNC."
   echo "  3. Save and verify the refreshed profile:"
-  printf '     SESSION_SCAN_SUPPRESS_EXCERPT=1 npm run session:manual-login:novnc:complete -- %q %q %q\n' "$PROFILE" "$TARGET_URL" "$EXPECTED_TEXT"
+  printf '     SESSION_SCAN_SUPPRESS_EXCERPT=1 npm run session:manual-login:novnc:complete -- %q <authenticated-url> \"<expected-text>\"\n' "$PROFILE"
   echo
+  if [[ -n "$LOGIN_URL" ]]; then
+    echo "A login URL was supplied to ensure, but it is intentionally not echoed."
+  fi
+  echo "Re-enter the URLs locally in Termux. Do not paste passwords, cookies, tokens, MFA codes, or storageState JSON."
   echo "This helper did not start VNC, noVNC, Cloudflare, or any public route."
   echo "Public noVNC must remain temporary and intentionally started only."
 }
