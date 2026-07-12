@@ -2,13 +2,23 @@
 
 ## Status
 
-Implemented in the repository. Live S22 validation is pending.
+Implemented and live-validated on the Samsung S22.
 
-This recovery step was added after the first live Phase 7Q-C2 public login proof reached `waiting_for_user_login`, then Android/Termux ended the main runtime with signal 9 while Chromium, VNC, websockify, proot, and manual-login child processes remained partially alive.
+This recovery step was added after the first live Phase 7Q-C2 public-login proof reached `waiting_for_user_login`, then Android/Termux ended the main runtime with signal 9 while Chromium, VNC, websockify, proot, and manual-login child processes remained partially alive.
+
+The diagnostics later helped show that the observed failures did not look like straightforward Linux RAM exhaustion. During failing runs, visible process counts were around 35 to 36 while `MemAvailable` was still approximately 3 GiB.
+
+After the Android phantom-process limit was raised to 256 and the operator used one primary SSH session plus tmux, the complete public-login stack ran without signal 9. The protected noVNC page remained usable, the human login completed, and the authenticated task later resumed to `ready`.
+
+Detailed result:
+
+```text
+docs/android-phantom-process-runtime-result.md
+```
 
 ## Objective
 
-Provide low-overhead, secret-safe runtime evidence before repeating the public login proof.
+Provide low-overhead, secret-safe runtime evidence before and during a public-login proof.
 
 The diagnostic tools must:
 
@@ -115,46 +125,62 @@ rm -rf .runtime
 
 Recovery should target known jobs and processes only.
 
-## Live S22 validation
+## Live S22 validation result
 
-Run while Route A, VNC, noVNC, and manual-login Chromium are stopped:
+Repository and runtime validation passed:
 
-```bash
-cd ~/projects/mobile-job-radar-agent
+- `runtime:doctor` completed without printing secrets or full command lines
+- the watcher started in tmux
+- periodic samples were written under `.runtime/diagnostics/`
+- the watcher stopped cleanly
+- the working tree remained clean
+- memory and process evidence was available before and during the repeated public-login proof
 
-git pull --ff-only
+During the later successful full-stack run, the watcher observed approximately:
 
-git log -1 --oneline
-
-bash -n \
-  scripts/runtime-doctor.sh \
-  scripts/runtime-watch-loop.sh \
-  scripts/runtime-watch-start.sh \
-  scripts/runtime-watch-status.sh \
-  scripts/runtime-watch-stop.sh
-
-npm run runtime:doctor
-
-npm run runtime:watch:start
-
-sleep 12
-
-npm run runtime:watch:status
-
-npm run runtime:watch:stop
-
-git status --short
+```text
+cloudflared: 1
+chromium: 11
+proot: 4
+Xtigervnc: 1
+websockify: 2
+node: 7
+sshd: 5
 ```
 
-Expected:
+Available memory remained in the multi-gigabyte range and no signal 9 occurred.
 
-- doctor completes without a secret or full command line
-- watcher starts in tmux
-- at least two periodic samples appear
-- watcher stops cleanly
-- diagnostic log remains under `.runtime/diagnostics/`
-- Git working tree remains clean
+The demonstrated operator configuration included:
+
+```text
+Android phantom-process limit: 256
+RAM Plus: 8 GB
+Termux wake lock: active during proof
+control path: one primary SSH session plus tmux
+```
+
+The Android phantom-process setting is outside the repository and cannot be enforced by the application code.
+
+## Interpretation boundary
+
+The successful result strongly supports Android phantom-process management as a significant factor in the earlier failures.
+
+It is not treated as a perfectly isolated root-cause proof because the SSH/tmux operating procedure also changed between the failing and successful runs.
+
+The accurate project claim is:
+
+> Raising the phantom-process limit to 256, together with the controlled one-SSH-plus-tmux operating procedure, enabled the demonstrated full S22 Web Agent stack to run without the previous signal-9 failure.
+
+## Operational use
+
+Use `runtime:doctor` when a current snapshot is enough.
+
+Use `runtime:watch` when time-series evidence is needed for a heavy proof or intermittent Android termination.
+
+The watcher is diagnostic support, not a permanent requirement for every normal S22 Web Agent task.
 
 ## Next step
 
-After this diagnostic layer passes on S22, add and validate a light public login mode that omits API port 3001, uses lower VNC geometry/depth, starts the diagnostic watcher before Chromium, and performs stale gateway recovery before another Phase 7Q-C2 live proof.
+The diagnostic recovery milestone is complete.
+
+Future work should focus on the task-first, login-on-demand browser workflow and portfolio completion rather than continuing to treat ordinary RAM monitoring as the main blocker.
