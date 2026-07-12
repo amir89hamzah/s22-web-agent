@@ -110,7 +110,7 @@ async function runGatewayAction(action, scriptName, args = []) {
     gatewayAction: action,
     gatewayExitCode: exitCode,
     mcpSafety:
-      'The tool accepts only a task job name plus an explicit approval or completion confirmation where required. It never accepts a credential, Cloudflare token, MCP token, storageState JSON, or full user prompt.',
+      'The tool accepts only a task job name, explicit approval or completion confirmation, and optional non-secret authenticated probe details. It never accepts a credential, Cloudflare token, MCP token, storageState JSON, or full user prompt.',
   };
 }
 
@@ -152,23 +152,36 @@ export function registerAuthenticatedLoginGatewayTools(server) {
 
   server.tool(
     'browser_authenticated_login_gateway_complete',
-    'Complete a user-approved manual login after the user confirms login succeeded. Saves the profile locally, stops noVNC and VNC, and re-checks the authenticated task. The shared MCP tunnel remains running.',
+    'Complete a user-approved manual login after the user confirms login succeeded. Saves the profile locally, stops noVNC and VNC, and re-checks the authenticated task. For a newly onboarded site, authenticatedTargetUrl and expectedText may be supplied together to replace the provisional probe target with the real authenticated page and a non-secret marker. The shared MCP tunnel remains running.',
     {
       job: z.string().regex(SAFE_NAME_RE).describe('Authenticated task job waiting for user login.'),
       userConfirmedLoginComplete: z
         .literal(true)
         .describe('Must be true only after the user confirms the website login is complete in noVNC.'),
+      authenticatedTargetUrl: z
+        .string()
+        .url()
+        .optional()
+        .describe('Optional real authenticated http or https page observed after login. Provide together with expectedText.'),
+      expectedText: z
+        .string()
+        .min(1)
+        .max(500)
+        .optional()
+        .describe('Optional non-secret marker expected only on the authenticated page. Provide together with authenticatedTargetUrl.'),
     },
     {
       readOnlyHint: false,
       destructiveHint: false,
       openWorldHint: true,
     },
-    async ({ job, userConfirmedLoginComplete }) =>
+    async ({ job, userConfirmedLoginComplete, authenticatedTargetUrl, expectedText }) =>
       safeTool(() =>
         runGatewayAction('complete', 'auth-login-gateway-complete.sh', [
           job,
           userConfirmedLoginComplete ? 'confirmed' : '',
+          authenticatedTargetUrl || '',
+          expectedText || '',
         ])
       )
   );
