@@ -43,6 +43,21 @@ Implementation status:
 
 Phase 7P is therefore implemented but not yet marked fully PASS.
 
+## Android runtime note
+
+The first heavy public-login trials repeatedly ended with Android signal 9 around approximately 35 to 36 visible monitored processes even though `MemAvailable` was still about 3 GiB. This did not resemble straightforward Linux RAM exhaustion.
+
+For the demonstrated successful full-stack proof, the Android phantom-process limit was raised to `256` through ADB. The operator also used one primary SSH session, tmux, Termux wake lock, and RAM Plus set to 8 GB. With that controlled configuration, Cloudflare, MCP, Debian proot, Chromium, VNC, noVNC, and the manual-login workflow ran together without the previous signal-9 failure.
+
+This is strong operational evidence, not a perfectly isolated laboratory proof, because the SSH/tmux operating procedure also changed. The Android setting is outside this repository and cannot be enforced by the Node.js code.
+
+Detailed result:
+
+```text
+docs/android-phantom-process-runtime-result.md
+docs/phase-7q-c2r-runtime-diagnostics.md
+```
+
 ## Current capabilities
 
 - CLI and HTTP webpage scanning
@@ -66,6 +81,8 @@ Phase 7P is therefore implemented but not yet marked fully PASS.
 - real GitHub dummy-account login and reuse
 - session continuity after S22 restart and a long offline gap
 - explicit saved-profile lifecycle states
+- secret-safe runtime doctor and diagnostic watcher
+- full-stack runtime proof with Android phantom-process limit set to 256
 
 ## Project positioning
 
@@ -162,6 +179,7 @@ This route is separate from the MCP hostname. It must remain temporary, protecte
 - Rotate the Cloudflare tunnel token before future public tests because it appeared in early raw logs before helper hardening.
 - Do not upgrade npm to a new major version during this phase merely because an update notice appears.
 - The current Termux installation is from Google Play; do not propose F-Droid migration by default.
+- Treat the phantom-process setting as an explicit Android operator configuration, not an application default.
 
 Runtime artifacts ignored by Git:
 
@@ -426,10 +444,13 @@ The authenticated profile MCP tool accepts only a named profile, target URL, and
 | 7O | Saved-profile continuity passed |
 | 7O-E | Full restart plus approximately one week offline passed |
 | 7P | Implemented; live S22 verification pending |
+| 7Q-C2R | Runtime diagnostics validated; full-stack signal-9 recovery proof passed with phantom-process limit 256 |
 
 ## Important documentation
 
 ```text
+docs/android-phantom-process-runtime-result.md
+docs/phase-7q-c2r-runtime-diagnostics.md
 docs/phase-7o-e-long-gap-session-continuity.md
 docs/phase-7p-profile-lifecycle-helpers.md
 docs/phase-7o-agent-continuity-proof.md
@@ -443,9 +464,11 @@ For AI-assisted repository navigation, see `llm-index.yaml`.
 
 ## Known limitations
 
-- Android may kill Termux under heavy runtime load.
+- Android may still kill Termux under heavy runtime load; the demonstrated configuration raised the phantom-process limit to 256, but this is not an application-level guarantee.
 - tmux protects against SSH disconnect but not Android terminating Termux.
-- AnyDesk, SSH, VNC, noVNC, and Chromium together can make the S22 unstable.
+- AnyDesk, multiple SSH sessions, VNC, noVNC, and Chromium together can make the S22 unstable.
+- The phantom-process setting is device and firmware dependent and may need operator verification after Android updates.
+- A small orphan `websockify`/proot pair may remain after some noVNC shutdown paths.
 - A saved profile may exist while the remote session is expired.
 - Websites can revoke or challenge sessions independently.
 - An absent expected marker can also mean the target page content changed; `expired_or_logged_out` is deliberately a fail-safe classification.
