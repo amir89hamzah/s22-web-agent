@@ -5,25 +5,16 @@ cd "$(dirname "$0")/.."
 
 JOB="${1:-}"
 CONFIRMATION="${2:-}"
-OVERRIDE_TARGET_URL="${3:-}"
-OVERRIDE_EXPECTED_TEXT="${4:-}"
 TASK_DIR=".runtime/authenticated-tasks"
 MANUAL_DIR=".runtime/manual-login-jobs"
 
 usage() {
-  echo "Usage: bash scripts/auth-login-gateway-complete.sh <job> confirmed [authenticated-target-url expected-text]" >&2
+  echo "Usage: bash scripts/auth-login-gateway-complete.sh <job> confirmed" >&2
 }
 
 if [[ -z "$JOB" || "$CONFIRMATION" != "confirmed" ]]; then
   usage
   exit 21
-fi
-
-if [[ -n "$OVERRIDE_TARGET_URL" && -z "$OVERRIDE_EXPECTED_TEXT" ]] || \
-   [[ -z "$OVERRIDE_TARGET_URL" && -n "$OVERRIDE_EXPECTED_TEXT" ]]; then
-  echo "state: runtime_error" >&2
-  echo "message: authenticated target URL and expected text must be provided together" >&2
-  exit 23
 fi
 
 if [[ ! "$JOB" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$ ]]; then
@@ -83,35 +74,6 @@ else
     echo "message: completed manual login did not leave both required profile artifacts" >&2
     exit 23
   fi
-fi
-
-if [[ -n "$OVERRIDE_TARGET_URL" ]]; then
-  node - "$TASK_PATH" "$OVERRIDE_TARGET_URL" "$OVERRIDE_EXPECTED_TEXT" <<'NODE' || {
-const fs = require('fs');
-const taskPath = process.argv[2];
-const rawTargetUrl = process.argv[3];
-const expectedText = String(process.argv[4] || '');
-let url;
-try {
-  url = new URL(rawTargetUrl);
-} catch {
-  process.exit(2);
-}
-if (!['http:', 'https:'].includes(url.protocol)) process.exit(3);
-if (url.username || url.password) process.exit(4);
-if (!expectedText || expectedText.length > 500) process.exit(5);
-const task = JSON.parse(fs.readFileSync(taskPath, 'utf8'));
-task.targetUrl = url.href;
-task.expectedText = expectedText;
-task.probeOverrideAppliedAt = new Date().toISOString();
-const tempPath = `${taskPath}.tmp`;
-fs.writeFileSync(tempPath, `${JSON.stringify(task, null, 2)}\n`, { mode: 0o600 });
-fs.renameSync(tempPath, taskPath);
-NODE
-    echo "state: runtime_error" >&2
-    echo "message: authenticated target override is invalid" >&2
-    exit 23
-  }
 fi
 
 HANDOFF_AT="$(date -Is)"
