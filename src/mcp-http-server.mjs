@@ -4,8 +4,7 @@ import http from 'http';
 import { randomUUID } from 'crypto';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createS22McpServer } from './mcp-core.mjs';
-import { registerAuthenticatedTaskTools } from './mcp-auth-task-tools.mjs';
-import { registerAuthenticatedLoginGatewayTools } from './mcp-auth-login-gateway-tools.mjs';
+import { registerBrowserTaskTools } from './mcp-browser-task-tools.mjs';
 
 const HOST = process.env.MCP_HTTP_HOST || '127.0.0.1';
 const PORT = Number(process.env.MCP_HTTP_PORT || 3003);
@@ -80,9 +79,10 @@ function readJsonBody(req) {
 }
 
 async function createSession() {
-  const mcpServer = createS22McpServer();
-  registerAuthenticatedTaskTools(mcpServer);
-  registerAuthenticatedLoginGatewayTools(mcpServer);
+  const mcpServer = createS22McpServer({
+    includeLegacyBrowserTools: false,
+  });
+  registerBrowserTaskTools(mcpServer);
 
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: () => randomUUID(),

@@ -7,24 +7,47 @@ This file tracks the current engineering state of the Samsung S22-hosted MCP and
 Latest completed runtime proof:
 
 ```text
-Phase 7O-E — long-gap session continuity: PASS
+Phase 7R — unified persistent browser MCP integration: PASS
 ```
 
-The GitHub dummy profile `github-manual-local` survived a full S22 power-off/restart and approximately one week offline. It was reused headlessly without VNC/noVNC and without another login.
-
-Current phase:
+The normal stateful MCP HTTP server now exposes exactly eight intended tools:
 
 ```text
-Phase 7P — operator-quality profile lifecycle helpers
+5 Job Radar tools
+3 unified persistent-browser tools
 ```
 
-Current Phase 7P status:
+The three unified browser tools are:
 
 ```text
-Implementation added
-Static and local classifier checks passed
-Live S22 Debian/Chromium verification pending
+browser_task_run
+browser_task_handoff
+browser_task_status
 ```
+
+The local S22 proof confirmed:
+
+- one persistent visible Chromium session on VNC display `:1`
+- MCP PNG screenshot delivery without a public `.runtime` route
+- clarification handoff without restarting Chromium
+- all fifteen legacy browser/login/auth tools hidden from normal MCP HTTP
+- clean shutdown of MCP HTTP, Playwright worker, VNC, and related tmux sessions
+
+Current next step:
+
+```text
+Verify an intentional protected MCP route for the new eight-tool set,
+then perform a controlled real read-only browser task.
+```
+
+Not yet proved in Phase 7R:
+
+- trusted-LAN access through `0.0.0.0`
+- bearer-token client proof for the new eight-tool set
+- public protected tunnel access to the new eight-tool set
+- browser-control handoff through protected noVNC
+- a real iLoginHR read-only task
+- automatic startup of VNC or the Playwright worker
 
 ## Phase 7P-0 — Documentation reconciliation
 
@@ -57,6 +80,12 @@ Status: COMPLETE.
 - [x] Real GitHub dummy-account authenticated scan
 - [x] Repeated profile reuse without noVNC
 - [x] Long-gap profile reuse after S22 restart
+- [x] Persistent visible Chromium worker on VNC display `:1`
+- [x] Unified persistent browser-task orchestrator
+- [x] Exactly eight intended tools on normal MCP HTTP
+- [x] MCP PNG screenshot delivery from the task runtime directory
+- [x] Clarification handoff that preserves the persistent Chromium session
+- [x] Unified MCP HTTP proof and clean runtime shutdown
 
 ## Mandatory security rules
 
@@ -100,7 +129,9 @@ Status: COMPLETE.
 | 7N | PASS | Protected temporary public noVNC demo proof |
 | 7O | PASS | Saved-profile continuity |
 | 7O-E | PASS | Full restart and approximately one week offline |
-| 7P | Implemented | Live S22 verification pending |
+| 7P | Implemented | Profile lifecycle helper foundation |
+| 7Q | PASS | Authenticated-task lifecycle, protected login gateway, and runtime diagnostics |
+| 7R | PASS | Unified persistent browser tools on normal MCP HTTP |
 
 ## Phase 7P — Profile lifecycle helpers
 
@@ -194,48 +225,56 @@ Command:
 npm run session:profile:self-test
 ```
 
-### Phase 7P live S22 verification
+### Phase 7P historical note
 
-Pending operator commands:
+Phase 7P created the profile lifecycle foundation used by the later authenticated-task work.
 
-```bash
-cd ~/projects/mobile-job-radar-agent
-git pull --ff-only
-npm run session:profile:self-test
-npm run session:profile:status -- github-manual-local https://github.com/settings/profile
-npm run session:profile:probe -- github-manual-local https://github.com/settings/profile "Public profile"
-npm run session:profile:ensure -- github-manual-local https://github.com/settings/profile "Public profile" https://github.com/login
-git status --short
-```
-
-Expected while the GitHub dummy session remains authenticated:
-
-```text
-self-test -> PASS
-status    -> present_unverified
-probe     -> valid
-ensure    -> valid
-git status --short -> no output
-```
-
-Acceptance criteria still pending:
-
-- [ ] Self-test passes in Termux on S22
-- [ ] Existing GitHub profile status returns `present_unverified`
-- [ ] Live GitHub probe returns `valid`
-- [ ] GitHub ensure returns `valid`
-- [ ] Unknown profile returns `missing`
-- [ ] Wrong target domain returns `domain_mismatch`
-- [ ] No secret values are printed
-- [ ] VNC/noVNC/public tunnel remain off
-- [ ] Working tree remains clean
-- [ ] Mark Phase 7P fully PASS only after these checks
-
-Proof and operator notes:
+The old pending operator checklist is no longer the current roadmap checkpoint. Detailed Phase 7P implementation and proof notes remain in:
 
 ```text
 docs/phase-7p-profile-lifecycle-helpers.md
 ```
+
+## Phase 7R — Unified Persistent Browser MCP Integration
+
+Status: PASS on the local Samsung S22 runtime.
+
+Implemented:
+
+- [x] Register `browser_task_run` on normal MCP HTTP
+- [x] Register `browser_task_handoff` on normal MCP HTTP
+- [x] Register `browser_task_status` on normal MCP HTTP
+- [x] Keep exactly five Job Radar tools plus three unified browser tools
+- [x] Hide all fifteen legacy browser/login/auth tools from normal MCP HTTP
+- [x] Preserve legacy source and stdio diagnostic registration
+- [x] Return validated screenshots as MCP `image/png` content
+- [x] Remove internal screenshot paths from MCP text output
+- [x] Reject screenshot symlinks and paths outside the expected task directory
+- [x] Preserve one Chromium session across snapshots and clarification handoff
+- [x] Complete and stop the persistent browser task cleanly
+- [x] Stop MCP HTTP, worker, VNC, and tmux runtime cleanly
+- [x] Avoid credentials, cookies, tokens, MFA values, form values, and storageState contents
+
+Local proof command:
+
+```bash
+npm run mcp:browser-task:proof
+```
+
+Detailed result:
+
+```text
+docs/phase-7r-unified-persistent-browser-mcp.md
+```
+
+Remaining follow-up:
+
+- [ ] Verify non-loopback MCP startup with mandatory bearer token
+- [ ] Verify the new eight-tool set through an intentional protected route
+- [ ] Prove browser-control handoff through the approved noVNC path
+- [ ] Run a real iLoginHR read-only task
+- [ ] Decide whether VNC and worker startup should remain manual or become approval-gated
+- [ ] Exercise the five Job Radar tools through the same intended client path
 
 ## Deferred and later work
 
@@ -264,6 +303,7 @@ OAuth protects access to MCP tools; it is separate from logging into target webs
 
 - [ ] API health smoke test
 - [ ] MCP HTTP smoke test
+- [x] Unified persistent-browser MCP HTTP proof
 - [ ] Static scan smoke test
 - [ ] Phase 7P local profile-state smoke tests
 - [ ] Local demo authenticated probe test

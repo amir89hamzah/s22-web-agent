@@ -81,7 +81,8 @@
     "session:novnc:public-temp:stop-guide": "bash scripts/session-novnc-public-temp-stop-guide.sh",
     "session:novnc:public-temp:tunnel:start": "bash scripts/session-novnc-public-temp-tunnel-start.sh",
     "session:novnc:public-temp:tunnel:status": "bash scripts/session-novnc-public-temp-tunnel-status.sh",
-    "session:novnc:public-temp:tunnel:stop": "bash scripts/session-novnc-public-temp-tunnel-stop.sh"
+    "session:novnc:public-temp:tunnel:stop": "bash scripts/session-novnc-public-temp-tunnel-stop.sh",
+    "mcp:browser-task:proof": "node tools/mcp-unified-browser-http-proof.mjs"
   },
   "keywords": [],
   "author": "",

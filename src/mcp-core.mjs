@@ -298,7 +298,7 @@ async function runManualLoginScript(scriptName, args = []) {
   };
 }
 
-export function createS22McpServer() {
+export function createS22McpServer({ includeLegacyBrowserTools = true } = {}) {
   const server = new McpServer({
     name: 's22-web-agent',
     version: '0.1.0',
@@ -375,6 +375,10 @@ export function createS22McpServer() {
     },
     async ({ id }) => safeTool(() => api(`/report/${id}`))
   );
+
+  if (!includeLegacyBrowserTools) {
+    return server;
+  }
 
   server.tool(
     'browser_inspect_url',
