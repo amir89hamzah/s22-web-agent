@@ -7,14 +7,14 @@ import { fileURLToPath } from 'node:url';
 const execFileAsync = promisify(execFile);
 const THIS_FILE = fileURLToPath(import.meta.url);
 
-const TRACKED_PROCESSES = {
-  chromium: ['chromium'],
-  node: ['node'],
-  proot: ['proot'],
-  xtigervnc: ['xtigervnc'],
-  websockify: ['websockify'],
-  cloudflared: ['cloudflared'],
-  sshd: ['sshd'],
+const TRACKED_PROCESS_PATTERNS = {
+  chromium: '[c]hromium',
+  node: '[n]ode',
+  proot: '[p]root',
+  xtigervnc: '[X]tigervnc',
+  websockify: '[w]ebsockify',
+  cloudflared: '[c]loudflared',
+  sshd: '[s]shd',
 };
 
 function round(value, digits = 1) {
@@ -86,7 +86,31 @@ async function collectMemory() {
   };
 }
 
+async function countProcessPattern(pattern) {
+  try {
+    const { stdout } = await execFileAsync(
+      'pgrep',
+      ['-c', '-f', pattern],
+      {
+        timeout: 3000,
+        maxBuffer: 64 * 1024,
+      }
+    );
+
+    const count = Number(String(stdout || '').trim());
+    return Number.isFinite(count) ? count : 0;
+  } catch (error) {
+    if (Number(error?.code) === 1) {
+      return 0;
+    }
+
+    return null;
+  }
+}
+
 async function collectProcesses() {
+  let totalVisible = null;
+
   try {
     const { stdout } = await execFileAsync(
       'ps',
@@ -97,36 +121,34 @@ async function collectProcesses() {
       }
     );
 
-    const names = String(stdout || '')
+    totalVisible = String(stdout || '')
       .split('\n')
-      .map((value) => value.trim().toLowerCase())
-      .filter(Boolean);
-
-    const counts = {};
-
-    for (const [label, aliases] of Object.entries(TRACKED_PROCESSES)) {
-      const normalizedAliases = aliases.map((value) =>
-        value.toLowerCase()
-      );
-
-      counts[label] = names.filter((name) =>
-        normalizedAliases.includes(name)
-      ).length;
-    }
-
-    return {
-      available: true,
-      scope: 'processes_visible_to_termux',
-      totalVisible: names.length,
-      ...counts,
-    };
-  } catch (error) {
-    return {
-      available: false,
-      scope: 'processes_visible_to_termux',
-      error: error?.message || String(error),
-    };
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .length;
+  } catch {
+    totalVisible = null;
   }
+
+  const entries = await Promise.all(
+    Object.entries(TRACKED_PROCESS_PATTERNS)
+      .map(async ([label, pattern]) => [
+        label,
+        await countProcessPattern(pattern),
+      ])
+  );
+
+  const counts = Object.fromEntries(entries);
+  const available = Object.values(counts)
+    .some((value) => Number.isFinite(value));
+
+  return {
+    available,
+    scope:
+      'project process counts use pgrep command-line matching; totalVisible uses processes visible to Termux',
+    totalVisible,
+    ...counts,
+  };
 }
 
 function normalizeThermalTemperature(rawText) {
