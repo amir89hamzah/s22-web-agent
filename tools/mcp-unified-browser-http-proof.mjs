@@ -181,6 +181,11 @@ async function main() {
     process.env.MCP_UNIFIED_BROWSER_PROOF_URL ||
     'http://127.0.0.1:3003/mcp';
 
+  const token = (
+    process.env.MCP_UNIFIED_BROWSER_PROOF_TOKEN ||
+    ''
+  ).trim();
+
   const client = new Client({
     name: 's22-unified-browser-proof',
     version: '1.0.0',
@@ -188,7 +193,16 @@ async function main() {
 
   const transport =
     new StreamableHTTPClientTransport(
-      new URL(endpoint)
+      new URL(endpoint),
+      token
+        ? {
+            requestInit: {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          }
+        : undefined
     );
 
   let taskStarted = false;
@@ -200,6 +214,12 @@ async function main() {
     console.log(
       `PASS: connected to MCP HTTP: ${endpoint}`
     );
+
+    if (token) {
+      console.log(
+        'PASS: MCP bearer authentication header is configured.'
+      );
+    }
 
     const listed = await client.listTools();
 
