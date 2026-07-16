@@ -7,47 +7,28 @@ This file tracks the current engineering state of the Samsung S22-hosted MCP and
 Latest completed runtime proof:
 
 ```text
-Phase 7R — unified persistent browser MCP integration: PASS
+Phase 7S — protected routes, safe navigation, browser auto-bootstrap,
+and SSH-independent OpenAI tunnel: PASS
 ```
 
-The normal stateful MCP HTTP server now exposes exactly eight intended tools:
+The normal MCP HTTP server still exposes exactly eight intended tools.
 
-```text
-5 Job Radar tools
-3 unified persistent-browser tools
-```
-
-The three unified browser tools are:
-
-```text
-browser_task_run
-browser_task_handoff
-browser_task_status
-```
-
-The local S22 proof confirmed:
-
-- one persistent visible Chromium session on VNC display `:1`
-- MCP PNG screenshot delivery without a public `.runtime` route
-- clarification handoff without restarting Chromium
-- all fifteen legacy browser/login/auth tools hidden from normal MCP HTTP
-- clean shutdown of MCP HTTP, Playwright worker, VNC, and related tmux sessions
+Phase 7S confirmed bearer-token and protected-route access, safe navigation, local VNC and worker auto-bootstrap, real LinkedIn profile continuity, and an OpenAI tunnel-client that remains reachable after SSH disconnect.
 
 Current next step:
 
 ```text
-Verify an intentional protected MCP route for the new eight-tool set,
-then perform a controlled real read-only browser task.
+Integrate browser-control handoff with the approved temporary protected
+noVNC path without auto-starting a public gateway as a fallback.
 ```
 
-Not yet proved in Phase 7R:
+Still pending:
 
-- trusted-LAN access through `0.0.0.0`
-- bearer-token client proof for the new eight-tool set
-- public protected tunnel access to the new eight-tool set
-- browser-control handoff through protected noVNC
-- a real iLoginHR read-only task
-- automatic startup of VNC or the Playwright worker
+- protected public noVNC browser-control handoff
+- automatic return of the approved noVNC gateway URL
+- dedicated closed-tab recovery regression
+- controlled authenticated iLoginHR read-only verification
+- exercise all five Job Radar tools through the refreshed intended client path
 
 ## Phase 7P-0 — Documentation reconciliation
 
@@ -132,6 +113,7 @@ Status: COMPLETE.
 | 7P | Implemented | Profile lifecycle helper foundation |
 | 7Q | PASS | Authenticated-task lifecycle, protected login gateway, and runtime diagnostics |
 | 7R | PASS | Unified persistent browser tools on normal MCP HTTP |
+| 7S | PASS | Protected routes, safe navigation, auto-bootstrap, LinkedIn continuity, and stable OpenAI tunnel |
 
 ## Phase 7P — Profile lifecycle helpers
 
@@ -275,6 +257,41 @@ Remaining follow-up:
 - [ ] Run a real iLoginHR read-only task
 - [ ] Decide whether VNC and worker startup should remain manual or become approval-gated
 - [ ] Exercise the five Job Radar tools through the same intended client path
+
+## Phase 7S — Protected routes and runtime continuity
+
+Status: PASS on the Samsung S22 runtime.
+
+Implemented and validated:
+
+- [x] Bearer-token and protected-route proofs
+- [x] Safe HTTP/HTTPS `navigate`
+- [x] Page tracking and recovery logic
+- [x] Automatic local VNC and worker startup
+- [x] Saved `linkedin-job-search` profile reuse
+- [x] Real read-only LinkedIn profile review and job search
+- [x] Stable tmux-held OpenAI tunnel-client
+- [x] ChatGPT reachability after SSH disconnect
+
+Operator guide:
+
+```text
+docs/operator-quickstart.md
+```
+
+Detailed result:
+
+```text
+docs/phase-7s-protected-routes-browser-runtime-and-tmux.md
+```
+
+Remaining follow-up:
+
+- [ ] Protected temporary noVNC browser-control handoff
+- [ ] Automatic return of the noVNC URL
+- [ ] Dedicated closed-tab recovery regression
+- [ ] Controlled authenticated iLoginHR read-only verification
+- [ ] Exercise all five Job Radar tools through the refreshed intended client path
 
 ## Deferred and later work
 

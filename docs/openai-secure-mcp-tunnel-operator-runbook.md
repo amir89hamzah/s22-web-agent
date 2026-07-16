@@ -1,5 +1,33 @@
 # OpenAI Secure MCP Tunnel operator runbook
 
+## Current recommended stable workflow
+
+```bash
+cd ~/projects/mobile-job-radar-agent
+npm run openai:tunnel:start
+npm run openai:tunnel:client:start:stable
+```
+
+Enter the runtime key through the hidden prompt. After connection, detach with `Ctrl+b`, release the keys, then press `d`. Closing SSH after detaching does not terminate the tunnel-client.
+
+Status:
+
+```bash
+npm run openai:tunnel:client:status:stable
+npm run openai:tunnel:status
+```
+
+Stop everything:
+
+```bash
+npm run openai:tunnel:client:stop:stable
+npm run openai:tunnel:stop
+npm run worker:stop:stable
+npm run session:vnc:stop:stable
+```
+
+See `docs/operator-quickstart.md` for the short operator reference.
+
 This runbook is for the private OpenAI Secure MCP Tunnel mode of S22 Web Agent.
 
 ## Scope

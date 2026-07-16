@@ -52,6 +52,7 @@ Supported actions:
 ```text
 start
 snapshot
+navigate
 click
 scroll
 back
@@ -251,3 +252,16 @@ Phase 7R did not yet prove:
 Phase 7R local integration is accepted as PASS.
 
 The next work should verify the intentional protected route and then perform a controlled real read-only browser task without exposing credentials or enabling form submission.
+
+## Post-Phase 7R follow-up
+
+Phase 7S completed the protected-route and runtime-continuity follow-up, including safe navigation, auto-bootstrap, real LinkedIn use, and a tmux-held OpenAI tunnel-client.
+
+See:
+
+```text
+docs/phase-7s-protected-routes-browser-runtime-and-tmux.md
+docs/operator-quickstart.md
+```
+
+Protected public noVNC browser-control handoff remains pending.
