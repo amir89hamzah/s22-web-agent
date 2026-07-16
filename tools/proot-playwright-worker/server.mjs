@@ -152,6 +152,7 @@ app.post('/browser-task/act', async (req, res) => {
       action: String(req.body?.action || '').trim(),
       targetId: String(req.body?.targetId || '').trim(),
       direction: String(req.body?.direction || 'down').trim(),
+      url: String(req.body?.url || '').trim(),
     })
   );
 });

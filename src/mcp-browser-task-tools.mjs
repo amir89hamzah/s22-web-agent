@@ -283,7 +283,7 @@ export function registerBrowserTaskTools(
 ) {
   server.tool(
     'browser_task_run',
-    'Run or continue one persistent read-only browser task on the S22. Supports start, snapshot, click, scroll, back, reload, complete, and cancel. Only one browser task may be active at a time.',
+    'Run or continue one persistent read-only browser task on the S22. Supports start, snapshot, navigate, click, scroll, back, reload, complete, and cancel. Only one browser task may be active at a time.',
     {
       job: z
         .string()
@@ -299,6 +299,7 @@ export function registerBrowserTaskTools(
           'scroll',
           'back',
           'reload',
+          'navigate',
           'complete',
           'cancel',
         ])
@@ -327,6 +328,13 @@ export function registerBrowserTaskTools(
         .optional()
         .describe(
           'HTTP or HTTPS starting URL. Required when starting a new task.'
+        ),
+      url: z
+        .string()
+        .url()
+        .optional()
+        .describe(
+          'HTTP or HTTPS destination URL. Required only with navigate. Embedded credentials are rejected by the worker.'
         ),
       targetId: z
         .string()

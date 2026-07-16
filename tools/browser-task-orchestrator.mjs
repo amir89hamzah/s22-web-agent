@@ -3,10 +3,19 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { collectDeviceHealth } from '../src/device-health.mjs';
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const REPO_ROOT = path.resolve(path.dirname(THIS_FILE), '..');
+const execFileAsync = promisify(execFile);
+
+const BROWSER_RUNTIME_ENSURE_SCRIPT = path.join(
+  REPO_ROOT,
+  'scripts',
+  'ensure-browser-runtime.sh'
+);
 
 const WORKER_URL =
   process.env.BROWSER_WORKER_URL ||
@@ -28,6 +37,7 @@ const RUN_ACTIONS = new Set([
   'scroll',
   'back',
   'reload',
+  'navigate',
   'complete',
   'cancel',
 ]);
@@ -210,6 +220,36 @@ function compactHealth(health) {
         health?.temperature?.gpuMaxC ?? null,
     },
   };
+}
+
+async function ensureBrowserRuntime() {
+  try {
+    await execFileAsync(
+      'bash',
+      [BROWSER_RUNTIME_ENSURE_SCRIPT],
+      {
+        cwd: REPO_ROOT,
+        timeout: 120_000,
+        maxBuffer: 2 * 1024 * 1024,
+        env: process.env,
+      }
+    );
+  } catch (error) {
+    const detail = [
+      error?.stdout,
+      error?.stderr,
+      error?.message,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    throw new Error(
+      `Browser runtime bootstrap failed: ${
+        optionalText(detail, 1800) ||
+        'unknown bootstrap error'
+      }`
+    );
+  }
 }
 
 async function workerRequest(
@@ -516,17 +556,34 @@ export async function runBrowserTask(input = {}) {
       );
     }
 
-    const workerStatus =
-      await getWorkerStatus();
+    let workerStatus =
+      await getWorkerStatus({
+        allowUnavailable: true,
+      });
 
     let action = requestedAction;
 
     if (!action) {
       action =
+        workerStatus.reachable &&
         workerStatus.active &&
         workerStatus.job === job
           ? 'snapshot'
           : 'start';
+    }
+
+    if (
+      action === 'start' &&
+      !workerStatus.reachable
+    ) {
+      await ensureBrowserRuntime();
+
+      workerStatus =
+        await getWorkerStatus();
+    } else if (!workerStatus.reachable) {
+      throw new Error(
+        'Playwright worker is unavailable. Start the browser task with action=start to bootstrap VNC and the worker.'
+      );
     }
 
     let workerResult;
@@ -631,6 +688,7 @@ export async function runBrowserTask(input = {}) {
         'scroll',
         'back',
         'reload',
+        'navigate',
       ].includes(action)
     ) {
       if (
@@ -641,6 +699,14 @@ export async function runBrowserTask(input = {}) {
           `Persistent browser task ${job} is not active.`
         );
       }
+
+      const navigateUrl =
+        action === 'navigate'
+          ? parseHttpUrl(
+              String(input.url || '').trim(),
+              'url'
+            ).href
+          : '';
 
       workerResult = await workerRequest(
         action === 'snapshot'
@@ -663,6 +729,7 @@ export async function runBrowserTask(input = {}) {
                       input.direction ||
                       'down'
                     ).trim(),
+                  url: navigateUrl,
                 },
         }
       );

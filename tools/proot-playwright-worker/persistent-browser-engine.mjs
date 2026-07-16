@@ -123,6 +123,81 @@ export class PersistentBrowserEngine {
     );
 
     this.active = null;
+    this.trackedPages = new WeakSet();
+  }
+
+  trackPage(session, page) {
+    if (
+      !page ||
+      page.isClosed() ||
+      this.trackedPages.has(page)
+    ) {
+      return;
+    }
+
+    this.trackedPages.add(page);
+
+    page.setDefaultNavigationTimeout(
+      this.navigationTimeoutMs
+    );
+    page.setDefaultTimeout(
+      this.actionTimeoutMs
+    );
+
+    page.on('response', (response) => {
+      try {
+        if (
+          this.active !== session ||
+          response.request().isNavigationRequest() === false ||
+          response.frame() !== page.mainFrame()
+        ) {
+          return;
+        }
+
+        session.lastHttpStatus = response.status();
+        session.updatedAt = new Date().toISOString();
+      } catch {
+        // A response may arrive while the page is closing.
+      }
+    });
+  }
+
+  recoverActivePage(session = this.active) {
+    if (!session) {
+      return null;
+    }
+
+    if (
+      session.page &&
+      !session.page.isClosed()
+    ) {
+      return session.page;
+    }
+
+    const pages =
+      session.context
+        ?.pages()
+        .filter((page) => !page.isClosed()) ||
+      [];
+
+    const replacementPage =
+      pages.at(-1) || null;
+
+    if (!replacementPage) {
+      return null;
+    }
+
+    this.trackPage(
+      session,
+      replacementPage
+    );
+
+    session.page = replacementPage;
+    session.state = 'running';
+    session.lastAction = 'page_recovered';
+    session.updatedAt = new Date().toISOString();
+
+    return replacementPage;
   }
 
   getStatus() {
@@ -134,9 +209,10 @@ export class PersistentBrowserEngine {
       };
     }
 
-    const pageAlive =
-      Boolean(this.active.page) &&
-      !this.active.page.isClosed();
+    const page =
+      this.recoverActivePage(this.active);
+
+    const pageAlive = Boolean(page);
 
     return {
       ok: true,
@@ -147,7 +223,7 @@ export class PersistentBrowserEngine {
       browserAlive: Boolean(this.active.browser?.isConnected()),
       pageAlive,
       currentUrl: pageAlive
-        ? safeDisplayUrl(this.active.page.url())
+        ? safeDisplayUrl(page.url())
         : null,
       startedAt: this.active.startedAt,
       updatedAt: this.active.updatedAt,
@@ -170,8 +246,13 @@ export class PersistentBrowserEngine {
       );
     }
 
-    if (!this.active.page || this.active.page.isClosed()) {
-      throw new Error('The persistent browser page is no longer available.');
+    const page =
+      this.recoverActivePage(this.active);
+
+    if (!page) {
+      throw new Error(
+        'The persistent browser page is no longer available.'
+      );
     }
 
     return this.active;
@@ -225,8 +306,6 @@ export class PersistentBrowserEngine {
     );
 
     const page = await context.newPage();
-    page.setDefaultNavigationTimeout(this.navigationTimeoutMs);
-    page.setDefaultTimeout(this.actionTimeoutMs);
 
     const now = new Date().toISOString();
 
@@ -253,18 +332,22 @@ export class PersistentBrowserEngine {
       }
     });
 
-    page.on('response', (response) => {
-      try {
-        if (
-          response.request().isNavigationRequest() &&
-          response.frame() === page.mainFrame()
-        ) {
-          this.active.lastHttpStatus = response.status();
-          this.active.updatedAt = new Date().toISOString();
-        }
-      } catch {
-        // A response may arrive while the page is closing.
+    this.trackPage(this.active, page);
+
+    context.on('page', (newPage) => {
+      if (this.active?.job !== job) {
+        return;
       }
+
+      this.trackPage(
+        this.active,
+        newPage
+      );
+
+      this.active.page = newPage;
+      this.active.state = 'running';
+      this.active.lastAction = 'page_opened';
+      this.active.updatedAt = new Date().toISOString();
     });
 
     try {
@@ -543,6 +626,7 @@ export class PersistentBrowserEngine {
     action,
     targetId = '',
     direction = 'down',
+    url = '',
   }) {
     const session = this.requireActive(job);
     const { page } = session;
@@ -555,6 +639,34 @@ export class PersistentBrowserEngine {
 
     if (action === 'snapshot') {
       session.lastAction = 'snapshot';
+      return this.snapshot({ job });
+    }
+
+    if (action === 'navigate') {
+      const targetUrl =
+        parseHttpUrl(
+          url,
+          'navigate URL'
+        );
+
+      const response = await page.goto(
+        targetUrl.href,
+        {
+          waitUntil: 'domcontentloaded',
+          timeout: this.navigationTimeoutMs,
+        }
+      );
+
+      if (response) {
+        session.lastHttpStatus =
+          response.status();
+      }
+
+      session.state = 'running';
+      session.lastAction = 'navigate';
+      session.updatedAt =
+        new Date().toISOString();
+
       return this.snapshot({ job });
     }
 
