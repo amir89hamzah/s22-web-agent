@@ -93,7 +93,24 @@ echo
 echo "Secret safety: token was removed from environment before cloudflared start."
 echo
 
-cloudflared tunnel run --token "$TUNNEL_TOKEN"
+TOKEN_FILE=".runtime/cloudflared-public-temp.token"
+printf '%s' "$TUNNEL_TOKEN" > "$TOKEN_FILE"
+chmod 600 "$TOKEN_FILE"
+unset TUNNEL_TOKEN
+
+cleanup_token_file() {
+  rm -f "$TOKEN_FILE"
+}
+trap cleanup_token_file EXIT INT TERM
+
+if cloudflared tunnel run --help 2>&1 | grep -q -- '--token-file'; then
+  cloudflared tunnel run --token-file "$TOKEN_FILE"
+else
+  TUNNEL_TOKEN="$(cat "$TOKEN_FILE")"
+  export TUNNEL_TOKEN
+  rm -f "$TOKEN_FILE"
+  exec cloudflared tunnel run
+fi
 EOF_RUNNER
 chmod 700 "$RUNNER"
 

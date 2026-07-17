@@ -30,9 +30,9 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo
 fi
 
-if pgrep -af 'cloudflared' >/dev/null 2>&1; then
-  echo "WARNING: cloudflared appears to be running. OpenAI tunnel mode should not need Route A."
-  pgrep -af 'cloudflared' || true
+if pgrep -f '[c]loudflared' >/dev/null 2>&1; then
+  echo "INFO: a cloudflared process is already running."
+  echo "Command line suppressed to protect tunnel token material."
   echo
 fi
 

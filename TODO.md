@@ -7,28 +7,32 @@ This file tracks the current engineering state of the Samsung S22-hosted MCP and
 Latest completed runtime proof:
 
 ```text
-Phase 7S — protected routes, safe navigation, browser auto-bootstrap,
-and SSH-independent OpenAI tunnel: PASS
+Phase 7U — Unified Operator Lifecycle: PASS
 ```
 
 The normal MCP HTTP server still exposes exactly eight intended tools.
 
-Phase 7S confirmed bearer-token and protected-route access, safe navigation, local VNC and worker auto-bootstrap, real LinkedIn profile continuity, and an OpenAI tunnel-client that remains reachable after SSH disconnect.
+Phase 7U confirmed one-command operator startup, stored runtime secrets outside
+Git, SSH-independent OpenAI tunnel startup, lazy browser auto-bootstrap,
+real browser acceptance testing, unified status, and one-command full runtime
+shutdown.
 
 Current next step:
 
 ```text
-Integrate browser-control handoff with the approved temporary protected
-noVNC path without auto-starting a public gateway as a fallback.
+Phase 7V — Automatic Protected On-Demand noVNC Handoff
 ```
 
 Still pending:
 
-- protected public noVNC browser-control handoff
-- automatic return of the approved noVNC gateway URL
+- automatically start local noVNC and the protected Cloudflare connector only
+  when human browser control is required
+- automatically return the approved noVNC gateway URL
+- automatically close the temporary public handoff path after control returns
+- reconcile stale browser-task metadata when the worker is no longer reachable
 - dedicated closed-tab recovery regression
-- controlled authenticated iLoginHR read-only verification
 - exercise all five Job Radar tools through the refreshed intended client path
+- Phase 7W approval-gated delayed agent shutdown
 
 ## Phase 7P-0 — Documentation reconciliation
 
@@ -86,7 +90,7 @@ Status: COMPLETE.
 - [x] Never perform automatic credential entry
 - [x] Keep tunnel and MCP tokens out of Git
 - [x] Do not echo supplied URLs in Phase 7P refresh guidance
-- [ ] Rotate the historical Cloudflare tunnel token before another public test
+- [x] Rotate the historical Cloudflare tunnel token before another public test
 - [x] Do not upgrade npm major solely because an update notice appears
 - [x] Do not propose Termux F-Droid migration by default
 
@@ -114,6 +118,8 @@ Status: COMPLETE.
 | 7Q | PASS | Authenticated-task lifecycle, protected login gateway, and runtime diagnostics |
 | 7R | PASS | Unified persistent browser tools on normal MCP HTTP |
 | 7S | PASS | Protected routes, safe navigation, auto-bootstrap, LinkedIn continuity, and stable OpenAI tunnel |
+| 7T | PASS | Phone-only cold restart and OpenAI reconnection proof |
+| 7U | PASS | Unified one-command start/status/stop operator lifecycle |
 
 ## Phase 7P — Profile lifecycle helpers
 
@@ -292,6 +298,45 @@ Remaining follow-up:
 - [ ] Dedicated closed-tab recovery regression
 - [ ] Controlled authenticated iLoginHR read-only verification
 - [ ] Exercise all five Job Radar tools through the refreshed intended client path
+
+## Phase 7U — Unified Operator Lifecycle
+
+Status: PASS on the Samsung S22 runtime.
+
+Implemented and validated:
+
+- [x] One-time protected secret setup outside Git
+- [x] `npm run s22:start`
+- [x] `npm run s22:status`
+- [x] `npm run s22:stop`
+- [x] Stable OpenAI tunnel-client startup without interactive tmux attachment
+- [x] Lazy browser worker, VNC, and Chromium auto-bootstrap preserved
+- [x] Idempotent repeated startup while the core runtime is READY
+- [x] Unified cleanup of active browser runtime and control plane
+- [x] OpenAI tunnel and public noVNC Cloudflare connector coexistence
+- [x] Cloudflare tunnel token rotation after diagnostic exposure
+- [x] Cloudflare token removed from process arguments
+- [x] Cloudflared command-line diagnostics suppressed
+- [x] Fresh-chat acceptance proof through the OpenAI connector
+- [x] Final full shutdown proof ending in `Overall: STOPPED`
+
+Operator guide:
+
+```text
+docs/operator-quickstart.md
+```
+
+Detailed result:
+
+```text
+docs/phase-7u-unified-operator-lifecycle.md
+```
+
+Next:
+
+```text
+Phase 7V — Automatic Protected On-Demand noVNC Handoff
+```
 
 ## Deferred and later work
 

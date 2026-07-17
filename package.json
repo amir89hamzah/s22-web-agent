@@ -85,7 +85,11 @@
     "session:novnc:public-temp:tunnel:start": "bash scripts/session-novnc-public-temp-tunnel-start.sh",
     "session:novnc:public-temp:tunnel:status": "bash scripts/session-novnc-public-temp-tunnel-status.sh",
     "session:novnc:public-temp:tunnel:stop": "bash scripts/session-novnc-public-temp-tunnel-stop.sh",
-    "mcp:browser-task:proof": "node tools/mcp-unified-browser-http-proof.mjs"
+    "mcp:browser-task:proof": "node tools/mcp-unified-browser-http-proof.mjs",
+    "s22:secrets:setup": "bash scripts/s22-secrets-setup.sh",
+    "s22:start": "bash scripts/s22-start.sh",
+    "s22:status": "bash scripts/s22-status.sh",
+    "s22:stop": "bash scripts/s22-stop.sh"
   },
   "keywords": [],
   "author": "",
