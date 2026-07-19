@@ -11,9 +11,6 @@ const SAFE_NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
 const MAX_VISIBLE_TEXT = 12_000;
 const MAX_INTERACTIVE_ELEMENTS = 150;
 
-const BLOCKED_ACTION_TEXT =
-  /\b(submit|save|apply|approve|reject|delete|remove|confirm|send|pay|purchase|checkout|book|login|log in|sign in|logout|log out)\b/i;
-
 function assertSafeName(value, label) {
   if (!SAFE_NAME_RE.test(String(value || ''))) {
     throw new Error(
@@ -742,23 +739,6 @@ export class PersistentBrowserEngine {
 
       if (metadata.disabled) {
         throw new Error(`Target ${targetId} is disabled.`);
-      }
-
-      if (
-        ['input', 'select', 'textarea'].includes(metadata.tag)
-      ) {
-        throw new Error(
-          'Phase 7R read-only mode does not allow field interaction.'
-        );
-      }
-
-      if (
-        metadata.type.toLowerCase() === 'submit' ||
-        BLOCKED_ACTION_TEXT.test(String(metadata.text || ''))
-      ) {
-        throw new Error(
-          'Phase 7R blocked a consequential or form-submission control.'
-        );
       }
 
       await locator.click({

@@ -83,11 +83,22 @@ PASS: S22 Web Agent fully stopped.
 
 ## Human browser handoff
 
-Phase 7U preserves browser-control handoff but does not yet automatically start
-the public noVNC Cloudflare connector.
+When temporary human control of the persistent Chromium session is required,
+ChatGPT can request a `browser_control` handoff.
 
-Automatic protected on-demand public noVNC startup and cleanup is planned for
-Phase 7V.
+The Phase 7V handoff lifecycle automatically:
+
+1. starts local noVNC;
+2. starts the temporary protected Cloudflare connector;
+3. returns the full public noVNC browser-control URL;
+4. preserves the same persistent Chromium session.
+
+After human interaction is complete, ChatGPT completes the handoff. The public
+Cloudflare connector and local noVNC are then stopped automatically while the
+persistent Chromium session remains available for continued agent work.
+
+No manual noVNC start, Cloudflare tunnel start, or Cloudflare token entry is
+required during normal operation.
 
 ## Security boundaries
 

@@ -7,28 +7,32 @@ This file tracks the current engineering state of the Samsung S22-hosted MCP and
 Latest completed runtime proof:
 
 ```text
-Phase 7U — Unified Operator Lifecycle: PASS
+Phase 7V — Automatic Protected On-Demand noVNC Handoff: PASS
 ```
 
 The normal MCP HTTP server still exposes exactly eight intended tools.
 
-Phase 7U confirmed one-command operator startup, stored runtime secrets outside
-Git, SSH-independent OpenAI tunnel startup, lazy browser auto-bootstrap,
-real browser acceptance testing, unified status, and one-command full runtime
-shutdown.
+Phase 7V confirmed automatic local noVNC and protected Cloudflare startup during
+a browser-control handoff, automatic return of the full noVNC browser-control
+URL, automatic public gateway cleanup after handoff, persistent Chromium
+continuity, and removal of hardcoded browser action-permission filters from the
+persistent browser engine.
 
 Current next step:
 
 ```text
-Phase 7V — Automatic Protected On-Demand noVNC Handoff
+Operator and reproducibility documentation
 ```
+
+Planned work:
+
+- document manual start/stop/status commands for individual S22 services
+- create installation guidance for cloning and setting up S22 on another device
+- consider `npm run s22:doctor` for dependency and environment checks before
+  building a more automated installer
 
 Still pending:
 
-- automatically start local noVNC and the protected Cloudflare connector only
-  when human browser control is required
-- automatically return the approved noVNC gateway URL
-- automatically close the temporary public handoff path after control returns
 - reconcile stale browser-task metadata when the worker is no longer reachable
 - dedicated closed-tab recovery regression
 - exercise all five Job Radar tools through the refreshed intended client path
@@ -120,6 +124,7 @@ Status: COMPLETE.
 | 7S | PASS | Protected routes, safe navigation, auto-bootstrap, LinkedIn continuity, and stable OpenAI tunnel |
 | 7T | PASS | Phone-only cold restart and OpenAI reconnection proof |
 | 7U | PASS | Unified one-command start/status/stop operator lifecycle |
+| 7V | PASS | Automatic protected on-demand noVNC browser-control handoff |
 
 ## Phase 7P — Profile lifecycle helpers
 
@@ -332,10 +337,52 @@ Detailed result:
 docs/phase-7u-unified-operator-lifecycle.md
 ```
 
+## Phase 7V — Automatic Protected On-Demand noVNC Handoff
+
+Status: PASS on the Samsung S22 runtime.
+
+Implemented and validated:
+
+- [x] `browser_task_handoff request` automatically starts local noVNC
+- [x] Protected Cloudflare connector starts automatically using the stored token
+- [x] Full `/vnc.html?...` browser-control URL is returned automatically
+- [x] Human control uses the same persistent Chromium session
+- [x] `browser_task_handoff complete` automatically stops the public connector
+- [x] Local noVNC port 6080 is no longer listening after handoff completion
+- [x] Persistent Chromium and the browser task remain alive after handoff
+- [x] Hardcoded browser action-permission filters removed from the browser engine
+- [x] Safe `Delete` regression succeeds through `browser_task_run`
+- [x] Static checks pass for all four modified Phase 7V implementation files
+- [x] Orphan/stale proot and websockify process investigation intentionally parked
+
+Operator guide:
+
+```text
+docs/operator-quickstart.md
+```
+
+Detailed result:
+
+```text
+docs/phase-7v-automatic-novnc-handoff.md
+```
+
 Next:
 
 ```text
-Phase 7V — Automatic Protected On-Demand noVNC Handoff
+Operator and reproducibility documentation
+```
+
+Planned:
+
+- [ ] `docs/manual-service-commands.md`
+- [ ] installation guideline for a fresh device clone/setup
+- [ ] evaluate `npm run s22:doctor` for dependency and environment validation
+
+Longer-term goal:
+
+```text
+Make the repository easier to reproduce on another Android device such as S26.
 ```
 
 ## Deferred and later work

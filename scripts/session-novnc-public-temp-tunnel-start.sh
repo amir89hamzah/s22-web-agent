@@ -8,11 +8,14 @@ SESSION="${SESSION_PUBLIC_TUNNEL_TMUX:-s22-cloudflared-public-temp}"
 RUNTIME_DIR=".runtime"
 TOKEN_ENV_FILE="$RUNTIME_DIR/cloudflared-public-temp.env"
 RUNNER="$RUNTIME_DIR/cloudflared-public-temp-runner.sh"
+SECRET_FILE="${S22_CLOUDFLARE_TUNNEL_TOKEN_FILE:-$HOME/.config/s22-web-agent/cloudflare-tunnel-token}"
 
 usage_note() {
   echo "Usage: npm run session:novnc:public-temp:tunnel:start"
   echo
-  echo "Either export CLOUDFLARE_TUNNEL_TOKEN first or paste it when prompted."
+  echo "Normal S22 operation uses the stored Cloudflare tunnel token."
+  echo "An explicit CLOUDFLARE_TUNNEL_TOKEN environment value may override it."
+  echo "Interactive manual runs may enter a token at the hidden prompt."
   echo "Do not paste the token into chat, docs, git, screenshots, or shell history."
 }
 
@@ -30,18 +33,27 @@ mkdir -p "$RUNTIME_DIR"
 chmod 700 "$RUNTIME_DIR" 2>/dev/null || true
 
 if tmux has-session -t "$SESSION" 2>/dev/null; then
-  echo "FAIL: Cloudflare public-temp tunnel tmux session already running: $SESSION" >&2
-  echo "Status: npm run session:novnc:public-temp:tunnel:status" >&2
-  echo "Stop:   npm run session:novnc:public-temp:tunnel:stop" >&2
-  exit 1
+  echo "PASS: Cloudflare public-temp tunnel tmux session already running: $SESSION"
+  exit 0
+fi
+
+if [[ -z "${CLOUDFLARE_TUNNEL_TOKEN:-}" && -r "$SECRET_FILE" ]]; then
+  CLOUDFLARE_TUNNEL_TOKEN="$(cat "$SECRET_FILE")"
+  export CLOUDFLARE_TUNNEL_TOKEN
 fi
 
 if [[ -z "${CLOUDFLARE_TUNNEL_TOKEN:-}" ]]; then
-  usage_note
-  echo
-  read -r -s -p "Paste CLOUDFLARE_TUNNEL_TOKEN: " CLOUDFLARE_TUNNEL_TOKEN
-  echo
-  export CLOUDFLARE_TUNNEL_TOKEN
+  if [[ -t 0 ]]; then
+    usage_note
+    echo
+    read -r -s -p "Paste CLOUDFLARE_TUNNEL_TOKEN: " CLOUDFLARE_TUNNEL_TOKEN
+    echo
+    export CLOUDFLARE_TUNNEL_TOKEN
+  else
+    echo "FAIL: no Cloudflare tunnel token is available." >&2
+    echo "Run npm run s22:secrets:setup first." >&2
+    exit 1
+  fi
 fi
 
 if [[ -z "${CLOUDFLARE_TUNNEL_TOKEN:-}" ]]; then
@@ -53,6 +65,9 @@ cat > "$TOKEN_ENV_FILE" <<EOF_TOKEN
 export CLOUDFLARE_TUNNEL_TOKEN='${CLOUDFLARE_TUNNEL_TOKEN}'
 EOF_TOKEN
 chmod 600 "$TOKEN_ENV_FILE"
+
+# Do not let the tunnel token propagate into the tmux session environment.
+unset CLOUDFLARE_TUNNEL_TOKEN
 
 cat > "$RUNNER" <<'EOF_RUNNER'
 #!/usr/bin/env bash
@@ -117,6 +132,12 @@ chmod 700 "$RUNNER"
 tmux new-session -d -s "$SESSION" "bash '$ROOT_DIR/$RUNNER'"
 
 sleep 2
+
+if ! tmux has-session -t "$SESSION" 2>/dev/null; then
+  rm -f "$TOKEN_ENV_FILE" "$RUNNER" "$RUNTIME_DIR/cloudflared-public-temp.token" 2>/dev/null || true
+  echo "FAIL: Cloudflare public-temp tunnel tmux session exited during startup." >&2
+  exit 1
+fi
 
 echo "PASS: Cloudflare public-temp tunnel tmux session started: $SESSION"
 echo

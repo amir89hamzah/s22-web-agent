@@ -17,6 +17,36 @@ const BROWSER_RUNTIME_ENSURE_SCRIPT = path.join(
   'ensure-browser-runtime.sh'
 );
 
+const NOVNC_START_SCRIPT = path.join(
+  REPO_ROOT,
+  'tools',
+  'proot-playwright-worker',
+  'session-novnc-start-local.sh'
+);
+
+const NOVNC_STOP_SCRIPT = path.join(
+  REPO_ROOT,
+  'tools',
+  'proot-playwright-worker',
+  'session-novnc-stop-local.sh'
+);
+
+const PUBLIC_TUNNEL_START_SCRIPT = path.join(
+  REPO_ROOT,
+  'scripts',
+  'session-novnc-public-temp-tunnel-start.sh'
+);
+
+const PUBLIC_TUNNEL_STOP_SCRIPT = path.join(
+  REPO_ROOT,
+  'scripts',
+  'session-novnc-public-temp-tunnel-stop.sh'
+);
+
+const PUBLIC_NOVNC_URL =
+  process.env.S22_PUBLIC_NOVNC_URL ||
+  'https://s22login.aidesk.rest/vnc.html?host=s22login.aidesk.rest&port=443&autoconnect=1&resize=scale';
+
 const WORKER_URL =
   process.env.BROWSER_WORKER_URL ||
   'http://127.0.0.1:3002';
@@ -219,6 +249,112 @@ function compactHealth(health) {
       gpuMaxC:
         health?.temperature?.gpuMaxC ?? null,
     },
+  };
+}
+
+async function runLifecycleScript(
+  scriptPath,
+  label
+) {
+  try {
+    const result = await execFileAsync(
+      'bash',
+      [scriptPath],
+      {
+        cwd: REPO_ROOT,
+        timeout: 120_000,
+        maxBuffer: 2 * 1024 * 1024,
+        env: process.env,
+      }
+    );
+
+    return {
+      ok: true,
+      stdout: optionalText(
+        result?.stdout,
+        1200
+      ),
+      stderr: optionalText(
+        result?.stderr,
+        1200
+      ),
+    };
+  } catch (error) {
+    const detail = [
+      error?.stdout,
+      error?.stderr,
+      error?.message,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    throw new Error(
+      `${label} failed: ${
+        optionalText(detail, 1800) ||
+        'unknown lifecycle error'
+      }`
+    );
+  }
+}
+
+async function startBrowserControlGateway() {
+  await runLifecycleScript(
+    NOVNC_START_SCRIPT,
+    'Local noVNC startup'
+  );
+
+  try {
+    await runLifecycleScript(
+      PUBLIC_TUNNEL_START_SCRIPT,
+      'Protected public noVNC tunnel startup'
+    );
+  } catch (error) {
+    await runLifecycleScript(
+      NOVNC_STOP_SCRIPT,
+      'Local noVNC rollback'
+    ).catch(() => {});
+
+    throw error;
+  }
+
+  return {
+    active: true,
+    url: PUBLIC_NOVNC_URL,
+  };
+}
+
+async function stopBrowserControlGateway() {
+  const errors = [];
+
+  try {
+    await runLifecycleScript(
+      PUBLIC_TUNNEL_STOP_SCRIPT,
+      'Protected public noVNC tunnel stop'
+    );
+  } catch (error) {
+    errors.push(error.message);
+  }
+
+  try {
+    await runLifecycleScript(
+      NOVNC_STOP_SCRIPT,
+      'Local noVNC stop'
+    );
+  } catch (error) {
+    errors.push(error.message);
+  }
+
+  if (errors.length > 0) {
+    throw new Error(
+      `Browser-control gateway cleanup failed: ${errors.join(
+        ' | '
+      )}`
+    );
+  }
+
+  return {
+    active: false,
+    url: null,
   };
 }
 
@@ -891,6 +1027,7 @@ export async function handoffBrowserTask(
     }
 
     let workerResult = null;
+    let browserControl = null;
 
     if (action === 'request') {
       const reason =
@@ -929,6 +1066,27 @@ export async function handoffBrowserTask(
             body: { job },
           }
         );
+
+        try {
+          browserControl =
+            await startBrowserControlGateway();
+        } catch (gatewayError) {
+          await stopBrowserControlGateway()
+            .catch(() => {});
+
+          await workerRequest(
+            '/browser-task/handoff/complete',
+            {
+              method: 'POST',
+              body: {
+                job,
+                saveProfile: false,
+              },
+            }
+          ).catch(() => {});
+
+          throw gatewayError;
+        }
       }
 
       task = {
@@ -953,6 +1111,9 @@ export async function handoffBrowserTask(
         task.help?.type ===
         'browser_control'
       ) {
+        browserControl =
+          await stopBrowserControlGateway();
+
         workerResult = await workerRequest(
           '/browser-task/handoff/complete',
           {
@@ -1006,12 +1167,13 @@ export async function handoffBrowserTask(
       state: task.state,
       task: publicTask(task),
       browser: workerResult,
+      browserControl,
       deviceHealth,
       next:
         action === 'request'
           ? type === 'clarification'
             ? 'Ask the user the stated question. No noVNC browser control is required.'
-            : 'Open the protected noVNC path only after explicit user approval. The persistent Chromium must not be restarted.'
+            : `Open ${PUBLIC_NOVNC_URL} for temporary human browser control. The persistent Chromium session remains active.`
           : task.state ===
             'human_help_required'
             ? 'Human assistance appears incomplete. Review the current browser page.'

@@ -10,7 +10,7 @@ echo "== Phase 7N Cloudflare connector tmux stop =="
 echo "tmux session: $SESSION"
 echo
 
-rm -f .runtime/cloudflared-public-temp.env .runtime/cloudflared-public-temp-runner.sh 2>/dev/null || true
+rm -f   .runtime/cloudflared-public-temp.env   .runtime/cloudflared-public-temp-runner.sh   .runtime/cloudflared-public-temp.token   2>/dev/null || true
 
 if tmux has-session -t "$SESSION" 2>/dev/null; then
   tmux kill-session -t "$SESSION" || true
