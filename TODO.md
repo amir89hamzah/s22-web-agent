@@ -425,3 +425,43 @@ OAuth protects access to MCP tools; it is separate from logging into target webs
 - [ ] Mobile application packaging
 - [ ] General-purpose agent framework migration
 - [ ] Termux distribution migration without a specific troubleshooting reason
+
+## Future Browser Capability and Reliability Work
+
+Status: PLANNED.
+
+These items were identified during real Yahoo Mail browser-control testing after
+Phase 7V. They are future improvements and are not blockers for the completed
+Phase 7V checkpoint.
+
+### Expose safe browser actuator capabilities through MCP
+
+- [ ] Expose the useful browser automation capabilities already available in
+  the underlying Playwright/browser engine through the MCP interface.
+- [ ] Prioritise capabilities such as `fill`/`type`, `press`, `goto`, explicit
+  wait operations, `check`/`uncheck`, `select_option`, and tab/window control.
+- [ ] Keep sensitive browser/session material protected. Do not expose password
+  values, cookies, authentication tokens, secret values, or raw storageState
+  contents through MCP responses.
+
+### S22 environment doctor
+
+- [ ] Evaluate and implement `npm run s22:doctor`.
+- [ ] Check important dependencies and runtime prerequisites such as Termux,
+  Node.js/npm, Debian proot, Playwright/Chromium, tmux, VNC, noVNC/websockify,
+  cloudflared, required scripts, expected secret-file presence/permissions,
+  and required local ports where appropriate.
+- [ ] Use the doctor command as a reproducibility preflight before considering
+  a more automated installer.
+
+### Action pacing, waits, and outcome verification
+
+- [ ] Add explicit action pacing so browser operations can follow a controlled
+  sequence: action -> wait -> inspect/verify -> next action.
+- [ ] Consider wait primitives such as waiting for an element, text, URL,
+  page state, or relevant network completion.
+- [ ] Distinguish an action being executed from its intended outcome being
+  verified. A successful Playwright click alone must not automatically be
+  treated as proof that a remote website persisted the requested change.
+- [ ] Revisit the Yahoo Mail delete-persistence observation later when time is
+  available; do not treat it as a current Phase 7V blocker.
