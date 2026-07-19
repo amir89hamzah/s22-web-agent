@@ -20,28 +20,35 @@ The project is a learning and portfolio proof for applied AI automation, MCP too
 Latest completed runtime proof:
 
 ```text
-Phase 7O-E — long-gap session continuity: PASS
+Phase 7V — Automatic Protected On-Demand noVNC Handoff: PASS
 ```
 
-The real GitHub dummy profile `github-manual-local` remained authenticated after a full S22 power-off/restart and approximately one week offline. It was reused headlessly without starting VNC/noVNC and without logging in again.
+Phase 7V confirmed automatic local noVNC and protected Cloudflare startup during
+a browser-control handoff, automatic return of the full public noVNC control
+URL, cleanup of the temporary public gateway after handoff, and preservation of
+the same persistent Chromium session.
 
-Current engineering phase:
+The normal MCP HTTP surface remains the intended eight tools: five Job Radar
+tools plus `browser_task_run`, `browser_task_handoff`, and
+`browser_task_status`.
+
+Current engineering checkpoint:
 
 ```text
-Phase 7P — operator-quality profile lifecycle helpers
+Documentation Closure — Operator & Reproducibility
 ```
 
-Implementation status:
+Current operator and reproducibility documentation:
 
-- `session:profile:status`: added
-- `session:profile:probe`: added
-- `session:profile:ensure`: added
-- `session:profile:self-test`: added
-- static JavaScript and shell syntax checks: PASS
-- local file-state classifier test: PASS
-- live S22 Debian/Chromium verification: pending operator run
+```text
+docs/operator-quickstart.md
+docs/manual-service-commands.md
+docs/installation-and-setup.md
+```
 
-Phase 7P is therefore implemented but not yet marked fully PASS.
+Future browser capability, reliability, installation automation, and
+`s22:doctor` work remain tracked in `TODO.md` and are not part of this
+documentation closure.
 
 ## Android runtime note
 

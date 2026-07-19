@@ -21,14 +21,14 @@ persistent browser engine.
 Current next step:
 
 ```text
-Operator and reproducibility documentation
+Documentation closure review and checkpoint
 ```
 
-Planned work:
+Documentation closure:
 
-- document manual start/stop/status commands for individual S22 services
-- create installation guidance for cloning and setting up S22 on another device
-- consider `npm run s22:doctor` for dependency and environment checks before
+- [x] document manual start/stop/status commands for individual S22 services
+- [x] create installation guidance for cloning and setting up S22 on another device
+- [ ] consider `npm run s22:doctor` for dependency and environment checks before
   building a more automated installer
 
 Still pending:
@@ -375,8 +375,8 @@ Operator and reproducibility documentation
 
 Planned:
 
-- [ ] `docs/manual-service-commands.md`
-- [ ] installation guideline for a fresh device clone/setup
+- [x] `docs/manual-service-commands.md`
+- [x] `docs/installation-and-setup.md`
 - [ ] evaluate `npm run s22:doctor` for dependency and environment validation
 
 Longer-term goal:

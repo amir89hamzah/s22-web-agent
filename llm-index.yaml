@@ -8,25 +8,21 @@ project:
   device: Samsung Galaxy S22
   host_environment: Termux from Google Play
   purpose: "Controlled mobile-hosted MCP and browser automation execution node"
-  current_phase: "Phase 7P implementation added; live S22 verification pending"
-  latest_completed_runtime_proof: "Phase 7O-E long-gap session continuity"
+  current_phase: "Documentation Closure — Operator & Reproducibility"
+  latest_completed_runtime_proof: "Phase 7V Automatic Protected On-Demand noVNC Handoff"
 
 latest_checkpoint:
-  phase: Phase 7O-E
+  phase: Phase 7V
   status: pass
-  profile: github-manual-local
-  target: https://github.com/settings/profile
-  expected_text: Public profile
-  proof_doc: docs/phase-7o-e-long-gap-session-continuity.md
+  proof_doc: docs/phase-7v-automatic-novnc-handoff.md
   verified:
-    - full S22 power-off and restart
-    - approximately one week offline
-    - runtime shutdown
-    - SSH reconnect
-    - repeated headless reuse
-    - no VNC or noVNC restart
-    - no repeated login
-    - no cookie or session values printed
+    - unified one-command operator lifecycle from Phase 7U remains the normal path
+    - automatic local noVNC start during browser-control handoff
+    - automatic protected Cloudflare connector start
+    - full public noVNC browser-control URL returned
+    - same persistent Chromium session preserved during human control
+    - public connector and local noVNC stopped after handoff completion
+    - normal MCP HTTP surface remains exactly eight intended tools
 
 phase_7p:
   status: implemented_live_device_verification_pending
@@ -110,7 +106,13 @@ high_level_status:
   real_github_dummy_authenticated_scan: pass
   repeated_session_reuse: pass
   long_gap_session_continuity: pass
-  phase_7p_profile_lifecycle: implemented_pending_live_test
+  phase_7p_profile_lifecycle: implemented_and_used_by_later_verified_runtime
+  phase_7r_unified_persistent_browser_mcp: pass
+  phase_7s_protected_routes_runtime_continuity: pass
+  phase_7t_phone_only_cold_restart: pass
+  phase_7u_unified_operator_lifecycle: pass
+  phase_7v_automatic_novnc_handoff: pass
+  documentation_closure_operator_reproducibility: in_progress
   cookie_json_import: deferred
   oauth: not_started_intentionally
 
@@ -202,21 +204,22 @@ runtime_modes:
       - rotate historical tunnel token before another public test
 
 mcp_tools:
-  scanner:
-    - job_radar_health
-    - job_radar_scan
-    - job_radar_list_pages
-    - job_radar_get_page
-    - job_radar_get_report
-  browser:
-    - browser_inspect_url
-    - browser_scan_url
-    - browser_scan_with_profile
-  manual_login:
-    - browser_start_manual_login
-    - browser_manual_login_status
-    - browser_complete_manual_login
-    - browser_cancel_manual_login
+  normal_mcp_http:
+    total: 8
+    job_radar:
+      - job_radar_health
+      - job_radar_scan
+      - job_radar_list_pages
+      - job_radar_get_page
+      - job_radar_get_report
+    browser:
+      - browser_task_run
+      - browser_task_handoff
+      - browser_task_status
+    notes:
+      - legacy browser, login, and auth tools remain available only in historical or diagnostic code paths
+      - normal MCP HTTP exposes only the intended eight-tool surface
+      - browser-control handoff uses the temporary protected noVNC path
   profile_input_boundary:
     accepted:
       - named profile
@@ -266,6 +269,9 @@ important_files:
     - TODO.md
     - llm-index.yaml
     - package.json
+    - docs/operator-quickstart.md
+    - docs/manual-service-commands.md
+    - docs/installation-and-setup.md
   core_runtime:
     - src/index.js
     - src/server.js
@@ -298,8 +304,11 @@ git_ignored_runtime_artifacts:
 
 docs_map:
   current:
-    - docs/phase-7p-profile-lifecycle-helpers.md
-    - docs/phase-7o-e-long-gap-session-continuity.md
+    - docs/phase-7v-automatic-novnc-handoff.md
+    - docs/phase-7u-unified-operator-lifecycle.md
+    - docs/operator-quickstart.md
+    - docs/manual-service-commands.md
+    - docs/installation-and-setup.md
   session_gateway:
     - docs/session-gateway-design.md
     - docs/session-gateway-vnc-smoke-test-results.md

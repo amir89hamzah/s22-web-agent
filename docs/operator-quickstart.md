@@ -100,6 +100,20 @@ persistent Chromium session remains available for continued agent work.
 No manual noVNC start, Cloudflare tunnel start, or Cloudflare token entry is
 required during normal operation.
 
+## More documentation
+
+For individual service start, status, stop, and troubleshooting commands:
+
+```text
+docs/manual-service-commands.md
+```
+
+For manual fresh-device cloning and setup guidance:
+
+```text
+docs/installation-and-setup.md
+```
+
 ## Security boundaries
 
 - API port 3001 remains local-only.
