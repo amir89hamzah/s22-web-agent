@@ -32,11 +32,15 @@ The normal MCP HTTP surface remains the intended eight tools: five Job Radar
 tools plus `browser_task_run`, `browser_task_handoff`, and
 `browser_task_status`.
 
-Current engineering checkpoint:
+Project status:
 
 ```text
-Documentation Closure — Operator & Reproducibility
+S22 Web Agent v1 — COMPLETE
 ```
+
+The functional runtime, unified operator lifecycle, automatic protected browser
+handoff, operator documentation, and fresh-device setup guidance are complete
+for the demonstrated Samsung S22 implementation.
 
 Current operator and reproducibility documentation:
 
@@ -46,9 +50,15 @@ docs/manual-service-commands.md
 docs/installation-and-setup.md
 ```
 
-Future browser capability, reliability, installation automation, and
-`s22:doctor` work remain tracked in `TODO.md` and are not part of this
-documentation closure.
+Repository closure checkpoint:
+
+```text
+checkpoint-phase-7v-documentation-closure
+```
+
+Remaining items in `TODO.md` are optional future enhancements, reliability
+improvements, additional regression coverage, or cross-device reproducibility
+work. They are not blockers for S22 Web Agent v1 completion.
 
 ## Android runtime note
 

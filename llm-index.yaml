@@ -8,7 +8,9 @@ project:
   device: Samsung Galaxy S22
   host_environment: Termux from Google Play
   purpose: "Controlled mobile-hosted MCP and browser automation execution node"
-  current_phase: "Documentation Closure — Operator & Reproducibility"
+  current_phase: "S22 Web Agent v1 — COMPLETE"
+  project_status: complete
+  closure_checkpoint: checkpoint-phase-7v-documentation-closure
   latest_completed_runtime_proof: "Phase 7V Automatic Protected On-Demand noVNC Handoff"
 
 latest_checkpoint:
@@ -25,7 +27,7 @@ latest_checkpoint:
     - normal MCP HTTP surface remains exactly eight intended tools
 
 phase_7p:
-  status: implemented_live_device_verification_pending
+  status: implemented_and_verified_through_later_runtime_phases
   primary_doc: docs/phase-7p-profile-lifecycle-helpers.md
   commands:
     status: npm run session:profile:status -- <profile> [target-url]
@@ -68,15 +70,11 @@ phase_7p:
       - present_unverified
       - domain_mismatch
       - runtime_error
-  pending_s22_validation:
-    - run self-test in Termux
-    - verify github-manual-local status is present_unverified
-    - verify live GitHub probe is valid
-    - verify ensure result is valid
-    - verify unknown profile is missing
-    - verify wrong domain is domain_mismatch
-    - verify no VNC/noVNC/public tunnel starts
-    - verify git working tree remains clean
+  later_runtime_evidence:
+    - profile lifecycle foundation was used by later authenticated-task and persistent-browser phases
+    - real authenticated profile reuse was verified on the Samsung S22
+    - long-gap session continuity was verified after full S22 restart
+    - later runtime phases supersede the original Phase 7P pending-live-validation note
   safety:
     - status does not launch Chromium
     - probe suppresses page excerpts by design
@@ -112,7 +110,8 @@ high_level_status:
   phase_7t_phone_only_cold_restart: pass
   phase_7u_unified_operator_lifecycle: pass
   phase_7v_automatic_novnc_handoff: pass
-  documentation_closure_operator_reproducibility: in_progress
+  documentation_closure_operator_reproducibility: complete
+  s22_web_agent_v1: complete
   cookie_json_import: deferred
   oauth: not_started_intentionally
 

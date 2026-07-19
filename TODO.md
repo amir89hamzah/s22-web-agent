@@ -18,25 +18,28 @@ URL, automatic public gateway cleanup after handoff, persistent Chromium
 continuity, and removal of hardcoded browser action-permission filters from the
 persistent browser engine.
 
-Current next step:
+Current project status:
 
 ```text
-Documentation closure review and checkpoint
+S22 Web Agent v1 — COMPLETE
 ```
 
 Documentation closure:
 
 - [x] document manual start/stop/status commands for individual S22 services
 - [x] create installation guidance for cloning and setting up S22 on another device
-- [ ] consider `npm run s22:doctor` for dependency and environment checks before
-  building a more automated installer
+- [x] complete documentation closure review and checkpoint
+- [x] create checkpoint tag `checkpoint-phase-7v-documentation-closure`
 
-Still pending:
+Optional future backlog:
 
-- reconcile stale browser-task metadata when the worker is no longer reachable
-- dedicated closed-tab recovery regression
-- exercise all five Job Radar tools through the refreshed intended client path
-- Phase 7W approval-gated delayed agent shutdown
+- [ ] evaluate `npm run s22:doctor` for dependency and environment checks
+- [ ] reconcile stale browser-task metadata when the worker is no longer reachable
+- [ ] dedicated closed-tab recovery regression
+- [ ] exercise all five Job Radar tools through the refreshed intended client path
+- [ ] Phase 7W approval-gated delayed agent shutdown
+
+These items are not blockers for S22 Web Agent v1 completion.
 
 ## Phase 7P-0 — Documentation reconciliation
 
@@ -260,14 +263,14 @@ Detailed result:
 docs/phase-7r-unified-persistent-browser-mcp.md
 ```
 
-Remaining follow-up:
+Historical follow-up reconciliation:
 
-- [ ] Verify non-loopback MCP startup with mandatory bearer token
-- [ ] Verify the new eight-tool set through an intentional protected route
-- [ ] Prove browser-control handoff through the approved noVNC path
-- [ ] Run a real iLoginHR read-only task
-- [ ] Decide whether VNC and worker startup should remain manual or become approval-gated
-- [ ] Exercise the five Job Radar tools through the same intended client path
+- [x] Non-loopback/protected MCP route validation completed by later protected-route work
+- [x] Eight-tool intended MCP surface validated by later runtime phases
+- [x] Browser-control handoff through the approved noVNC path completed in Phase 7V
+- [ ] Run a real iLoginHR read-only task — optional future verification
+- [x] VNC and worker lifecycle resolved through automatic local bootstrap
+- [ ] Exercise the five Job Radar tools through the same intended client path — optional future verification
 
 ## Phase 7S — Protected routes and runtime continuity
 
@@ -296,13 +299,13 @@ Detailed result:
 docs/phase-7s-protected-routes-browser-runtime-and-tmux.md
 ```
 
-Remaining follow-up:
+Historical follow-up reconciliation:
 
-- [ ] Protected temporary noVNC browser-control handoff
-- [ ] Automatic return of the noVNC URL
-- [ ] Dedicated closed-tab recovery regression
-- [ ] Controlled authenticated iLoginHR read-only verification
-- [ ] Exercise all five Job Radar tools through the refreshed intended client path
+- [x] Protected temporary noVNC browser-control handoff completed in Phase 7V
+- [x] Automatic return of the full noVNC URL completed in Phase 7V
+- [ ] Dedicated closed-tab recovery regression — optional future reliability work
+- [ ] Controlled authenticated iLoginHR read-only verification — optional future verification
+- [ ] Exercise all five Job Radar tools through the refreshed intended client path — optional future verification
 
 ## Phase 7U — Unified Operator Lifecycle
 
@@ -367,16 +370,20 @@ Detailed result:
 docs/phase-7v-automatic-novnc-handoff.md
 ```
 
-Next:
+Closure:
 
 ```text
-Operator and reproducibility documentation
+Operator and reproducibility documentation — COMPLETE
 ```
 
-Planned:
+Completed:
 
 - [x] `docs/manual-service-commands.md`
 - [x] `docs/installation-and-setup.md`
+- [x] documentation closure checkpoint created
+
+Optional future work:
+
 - [ ] evaluate `npm run s22:doctor` for dependency and environment validation
 
 Longer-term goal:
